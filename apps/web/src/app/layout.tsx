@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google'
 import { ClerkProvider } from '@clerk/nextjs'
 import { headers } from 'next/headers'
 import './globals.css'
+import { Providers } from './providers'
 
 function cssVarsFromTenantHeaders(h: Headers) {
   const primary = h.get('x-tenant-primary') || '#0B7A75'
@@ -35,7 +36,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <head>
           <style dangerouslySetInnerHTML={{ __html: cssVars }} />
         </head>
-        <body className={`${inter.variable} font-sans antialiased`}>{children}</body>
+        <body className={`${inter.variable} font-sans antialiased`}>
+          <Providers>{children}</Providers>
+        </body>
       </html>
     </ClerkProvider>
   )
