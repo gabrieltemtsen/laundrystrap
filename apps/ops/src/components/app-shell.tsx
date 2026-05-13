@@ -1,0 +1,113 @@
+'use client'
+
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import * as React from 'react'
+import { cn } from '@/lib/cn'
+import { ButtonLink, Container } from '@/components/ui'
+import { ClipboardList, LayoutDashboard, QrCode, Shirt, Sparkles } from 'lucide-react'
+
+const nav = [
+  { href: '/', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/intake', label: 'New Intake', icon: ClipboardList },
+  { href: '/scan', label: 'Scan', icon: QrCode },
+]
+
+function SidebarNav() {
+  const pathname = usePathname()
+
+  return (
+    <aside className="hidden w-64 shrink-0 border-r border-border/60 bg-black/20 md:block">
+      <div className="flex h-16 items-center gap-2 px-5">
+        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/20 ring-1 ring-primary/30">
+          <Shirt className="h-5 w-5 text-primary" />
+        </div>
+        <div className="leading-tight">
+          <div className="text-sm font-semibold">LaundryStrap</div>
+          <div className="text-xs text-muted">Ops Console</div>
+        </div>
+      </div>
+
+      <nav className="px-3">
+        {nav.map((item) => {
+          const active = pathname === item.href
+          const Icon = item.icon
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={cn(
+                'mb-1 flex items-center gap-3 rounded-md px-3 py-2 text-sm transition',
+                active ? 'bg-white/10 text-white' : 'text-white/80 hover:bg-white/5 hover:text-white',
+              )}
+            >
+              <Icon className="h-4 w-4" />
+              {item.label}
+            </Link>
+          )
+        })}
+      </nav>
+
+      <div className="mt-6 px-5">
+        <div className="rounded-lg border border-border/60 bg-white/5 p-4">
+          <div className="flex items-center gap-2 text-sm font-semibold">
+            <Sparkles className="h-4 w-4 text-primary" />
+            Workflow tip
+          </div>
+          <p className="mt-2 text-xs text-muted">
+            Intake fast: tag every item, then photo the whole bag. You can fill details later—don’t leave untagged garments.
+          </p>
+        </div>
+      </div>
+    </aside>
+  )
+}
+
+function Topbar() {
+  return (
+    <header className="sticky top-0 z-10 border-b border-border/60 bg-black/20 backdrop-blur">
+      <Container className="flex h-16 items-center justify-between">
+        <div className="flex items-center gap-2 md:hidden">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/20 ring-1 ring-primary/30">
+            <Shirt className="h-5 w-5 text-primary" />
+          </div>
+          <div className="text-sm font-semibold">Ops</div>
+        </div>
+
+        <div className="hidden items-center gap-2 md:flex">
+          <span className="text-sm text-muted">Quick actions:</span>
+          <ButtonLink href="/intake" variant="primary" size="sm">
+            <ClipboardList className="h-4 w-4" />
+            New intake
+          </ButtonLink>
+          <ButtonLink href="/scan" variant="secondary" size="sm">
+            <QrCode className="h-4 w-4" />
+            Scan
+          </ButtonLink>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <div className="hidden rounded-full border border-border/60 bg-white/5 px-3 py-1 text-xs text-muted md:block">
+            Store: Default Tenant
+          </div>
+        </div>
+      </Container>
+    </header>
+  )
+}
+
+export function AppShell({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="min-h-screen">
+      <div className="flex">
+        <SidebarNav />
+        <div className="min-w-0 flex-1">
+          <Topbar />
+          <main className="py-6">
+            <Container>{children}</Container>
+          </main>
+        </div>
+      </div>
+    </div>
+  )
+}
