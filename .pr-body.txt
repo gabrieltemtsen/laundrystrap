@@ -1,0 +1,15 @@
+## What
+- Merges the ops UI into the main Next.js app (previously apps/ops) under the /ops/* route namespace
+- Keeps marketing site routes (/ and /services) intact
+- Removes the separate apps/ops package so Vercel can deploy a single Next app
+
+## Result
+Single Vercel project can deploy this repo by setting Root Directory = apps/web.
+
+## Notes
+- Ops routes now live at: /ops, /ops/intake, /ops/scan, /ops/orders/[id]
+- Added ops-only deps to apps/web/package.json
+
+## Verification
+- pnpm install
+- pnpm build

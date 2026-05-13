@@ -8,9 +8,9 @@ import { ButtonLink, Container } from '@/components/ui'
 import { ClipboardList, LayoutDashboard, QrCode, Shirt, Sparkles } from 'lucide-react'
 
 const nav = [
-  { href: '/', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/intake', label: 'New Intake', icon: ClipboardList },
-  { href: '/scan', label: 'Scan', icon: QrCode },
+  { href: '/ops', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/ops/intake', label: 'New Intake', icon: ClipboardList },
+  { href: '/ops/scan', label: 'Scan', icon: QrCode },
 ]
 
 function SidebarNav() {
@@ -30,7 +30,7 @@ function SidebarNav() {
 
       <nav className="px-3">
         {nav.map((item) => {
-          const active = pathname === item.href
+          const active = pathname === item.href || pathname.startsWith(item.href + '/')
           const Icon = item.icon
           return (
             <Link
@@ -76,11 +76,11 @@ function Topbar() {
 
         <div className="hidden items-center gap-2 md:flex">
           <span className="text-sm text-muted">Quick actions:</span>
-          <ButtonLink href="/intake" variant="primary" size="sm">
+          <ButtonLink href="/ops/intake" variant="primary" size="sm">
             <ClipboardList className="h-4 w-4" />
             New intake
           </ButtonLink>
-          <ButtonLink href="/scan" variant="secondary" size="sm">
+          <ButtonLink href="/ops/scan" variant="secondary" size="sm">
             <QrCode className="h-4 w-4" />
             Scan
           </ButtonLink>
