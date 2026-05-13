@@ -58,12 +58,12 @@ export default function DashboardPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <ButtonLink href="/scan" variant="secondary">
+            <ButtonLink href="/ops/scan" variant="secondary">
               <QrCode className="h-4 w-4" />
               Scan tag
               <Kbd className="ml-1 hidden md:inline-flex">⌘ K</Kbd>
             </ButtonLink>
-            <ButtonLink href="/intake" variant="primary">
+            <ButtonLink href="/ops/intake" variant="primary">
               <Sparkles className="h-4 w-4" />
               New intake
               <ArrowRight className="h-4 w-4" />
@@ -126,7 +126,7 @@ export default function DashboardPage() {
               {TODAY.map((o) => (
                 <Link
                   key={o.id}
-                  href={`/orders/${o.id}`}
+                  href={`/ops/orders/${o.id}`}
                   className="grid grid-cols-12 gap-2 border-t border-border/60 px-3 py-3 text-sm transition hover:bg-white/5"
                 >
                   <div className="col-span-4">

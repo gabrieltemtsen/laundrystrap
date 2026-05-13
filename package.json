@@ -4,15 +4,12 @@
   "private": true,
   "packageManager": "pnpm@10.2.0",
   "scripts": {
-    "dev:web": "pnpm --filter web dev",
-    "dev:ops": "pnpm --filter ops dev",
+    "dev": "pnpm --filter web dev",
 
-    "build:web": "pnpm --filter web build",
-    "build:ops": "pnpm --filter ops build",
-    "build": "pnpm -r --filter web --filter ops build",
+    "build": "pnpm --filter web build",
 
-    "lint": "pnpm -r --filter web --filter ops lint",
-    "type-check": "pnpm -r --filter web --filter ops type-check"
+    "lint": "pnpm --filter web lint",
+    "type-check": "pnpm --filter web type-check"
   },
   "devDependencies": {
     "typescript": "^5.4.0",

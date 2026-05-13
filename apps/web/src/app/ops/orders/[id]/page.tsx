@@ -47,7 +47,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
       <div className="flex flex-col gap-6">
         <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
           <div>
-            <Link href="/" className="inline-flex items-center gap-2 text-sm text-muted hover:text-white">
+            <Link href="/ops" className="inline-flex items-center gap-2 text-sm text-muted hover:text-white">
               <ArrowLeft className="h-4 w-4" />
               Back to dashboard
             </Link>
