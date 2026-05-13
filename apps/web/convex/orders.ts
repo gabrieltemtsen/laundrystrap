@@ -40,7 +40,27 @@ export const list = query({
 export const getByCode = query({
   args: { code: v.string() },
   handler: async (ctx, args) => {
-    return await ctx.db.query('orders').withIndex('by_code', (q) => q.eq('code', args.code)).unique()
+    const order = await ctx.db
+      .query('orders')
+      .withIndex('by_code', (q) => q.eq('code', args.code))
+      .unique()
+
+    if (!order) return null
+
+    // Also fetch items for the tracking view
+    const items = await ctx.db
+      .query('orderItems')
+      .withIndex('by_order', (q) => q.eq('orderId', order._id))
+      .collect()
+
+    return { ...order, items }
+  },
+})
+
+export const getById = query({
+  args: { orderId: v.id('orders') },
+  handler: async (ctx, args) => {
+    return await ctx.db.get(args.orderId)
   },
 })
 
@@ -48,21 +68,25 @@ export const create = mutation({
   args: {
     customerName: v.string(),
     customerPhone: v.optional(v.string()),
+    customerId: v.optional(v.id('customers')),
     dueAt: v.optional(v.number()),
     expectedLocation: v.optional(v.string()),
     notes: v.optional(v.string()),
+    totalPrice: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     const t = now()
     const code = genOrderCode()
     const id = await ctx.db.insert('orders', {
       code,
+      customerId: args.customerId,
       customerName: args.customerName,
       customerPhone: args.customerPhone,
       status: 'Awaiting Intake',
       expectedLocation: args.expectedLocation,
       dueAt: args.dueAt,
       notes: args.notes,
+      totalPrice: args.totalPrice,
       createdAt: t,
       updatedAt: t,
     })
@@ -88,5 +112,29 @@ export const updateStatus = mutation({
       expectedLocation: args.expectedLocation,
       updatedAt: now(),
     })
+  },
+})
+
+export const counts = query({
+  args: {},
+  handler: async (ctx) => {
+    const awaiting = await ctx.db
+      .query('orders')
+      .withIndex('by_status', (q) => q.eq('status', 'Awaiting Intake'))
+      .collect()
+    const inWash = await ctx.db
+      .query('orders')
+      .withIndex('by_status', (q) => q.eq('status', 'In Wash'))
+      .collect()
+    const ready = await ctx.db
+      .query('orders')
+      .withIndex('by_status', (q) => q.eq('status', 'Ready for Pickup'))
+      .collect()
+
+    return {
+      awaitingIntake: awaiting.length,
+      inProgress: inWash.length,
+      ready: ready.length,
+    }
   },
 })

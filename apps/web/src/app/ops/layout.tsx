@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react'
-import './ops.css'
 
 export default function OpsLayout({ children }: { children: ReactNode }) {
-  return <div className="ops-shell">{children}</div>
+  return <div className="ops-root">{children}</div>
 }
