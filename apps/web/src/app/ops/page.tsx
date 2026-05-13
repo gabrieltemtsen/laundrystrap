@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useQuery } from 'convex/react'
 import { api } from '../../../convex/_generated/api'
+import type { Order } from '@/lib/types'
 import { AppShell } from '@/components/app-shell'
 import { Badge, ButtonLink, Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui'
 import { ArrowRight, Clock, MapPin, QrCode, Sparkles, Users, TrendingUp, CheckCircle2, Loader2 } from 'lucide-react'
@@ -29,10 +30,11 @@ function formatDue(dueAt?: number) {
 }
 
 export default function DashboardPage() {
-  const orders = useQuery(api.orders.list, { limit: 50 })
-  const counts = useQuery(api.orders.counts, {})
+  const ordersRaw = useQuery(api.orders.list, { limit: 50 })
+  const counts = useQuery(api.orders.counts, {}) as { awaitingIntake: number; inProgress: number; ready: number } | undefined
 
-  const activeOrders = orders?.filter((o) => o.status !== 'Completed') ?? []
+  const orders = ordersRaw as Order[] | undefined
+  const activeOrders = orders?.filter((o: Order) => o.status !== 'Completed') ?? []
 
   return (
     <AppShell>
@@ -162,7 +164,6 @@ export default function DashboardPage() {
               </div>
             ) : (
               <div className="overflow-x-auto">
-                {/* Header row */}
                 <div className="grid grid-cols-12 gap-2 border-b border-white/[0.06] px-4 py-2.5 text-xs font-medium text-white/30">
                   <div className="col-span-4">Order / Customer</div>
                   <div className="col-span-2">Status</div>
@@ -174,7 +175,7 @@ export default function DashboardPage() {
                   </div>
                 </div>
 
-                {activeOrders.map((o) => (
+                {activeOrders.map((o: Order) => (
                   <Link
                     key={o._id}
                     href={`/ops/orders/${o._id}`}

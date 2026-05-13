@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useQuery } from 'convex/react'
 import { api } from '../../../convex/_generated/api'
+import type { OrderWithItems } from '@/lib/types'
 import { ArrowRight, ShieldCheck, Search, Package, CheckCircle2, Loader2, Shirt, Droplets, Clock } from 'lucide-react'
 
 function statusConfig(status: string) {
@@ -45,7 +46,8 @@ function TrackingWidget() {
   const [code, setCode] = useState('')
   const [query, setQuery] = useState<string | null>(null)
 
-  const result = useQuery(api.orders.getByCode, query ? { code: query.toUpperCase() } : 'skip')
+  const resultRaw = useQuery(api.orders.getByCode, query ? { code: query.toUpperCase() } : 'skip')
+  const result = resultRaw as OrderWithItems | null | undefined
 
   const handleTrack = () => {
     const trimmed = code.trim()

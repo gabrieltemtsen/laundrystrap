@@ -4,9 +4,10 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { useQuery } from 'convex/react'
 import { api } from '../../../../convex/_generated/api'
+import type { Customer } from '@/lib/types'
 import { AppShell } from '@/components/app-shell'
-import { Badge, ButtonLink, Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui'
-import { Search, User, Phone, Mail, Plus, ArrowRight, Loader2, Users } from 'lucide-react'
+import { ButtonLink, Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui'
+import { Phone, Mail, Plus, ArrowRight, Loader2, Users, Search } from 'lucide-react'
 
 function initials(name: string) {
   return name
@@ -32,7 +33,8 @@ function avatarColor(name: string) {
 
 export default function CustomersPage() {
   const [search, setSearch] = useState('')
-  const customers = useQuery(api.customers.list, { search: search || undefined })
+  const customersRaw = useQuery(api.customers.list, { search: search || undefined })
+  const customers = customersRaw as Customer[] | undefined
 
   return (
     <AppShell>
@@ -100,7 +102,7 @@ export default function CustomersPage() {
                   <div className="col-span-2 text-right">Actions</div>
                 </div>
 
-                {customers.map((c) => (
+                {customers.map((c: Customer) => (
                   <Link
                     key={c._id}
                     href={`/ops/customers/${c._id}`}

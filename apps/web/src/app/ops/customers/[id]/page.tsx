@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { use, useState } from 'react'
 import { useQuery, useMutation } from 'convex/react'
 import { api } from '../../../../../convex/_generated/api'
+import type { Customer, Order } from '@/lib/types'
 import { AppShell } from '@/components/app-shell'
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle, CardDescription, Input, Textarea } from '@/components/ui'
 import {
@@ -50,8 +51,10 @@ export default function CustomerProfilePage({ params }: { params: Promise<{ id: 
   const { id } = use(params)
   const customerId = id as any
 
-  const customer = useQuery(api.customers.getById, { customerId })
-  const orders = useQuery(api.customers.getOrdersByCustomer, { customerId })
+  const customerRaw = useQuery(api.customers.getById, { customerId })
+  const ordersRaw = useQuery(api.customers.getOrdersByCustomer, { customerId })
+  const customer = customerRaw as Customer | null | undefined
+  const orders = ordersRaw as Order[] | undefined
   const updateCustomer = useMutation(api.customers.update)
 
   const [editing, setEditing] = useState(false)
@@ -112,8 +115,8 @@ export default function CustomerProfilePage({ params }: { params: Promise<{ id: 
     )
   }
 
-  const completedOrders = orders.filter((o) => o.status === 'Completed').length
-  const activeOrders = orders.filter((o) => o.status !== 'Completed').length
+  const completedOrders = orders.filter((o: Order) => o.status === 'Completed').length
+  const activeOrders = orders.filter((o: Order) => o.status !== 'Completed').length
 
   return (
     <AppShell>
@@ -271,7 +274,7 @@ export default function CustomerProfilePage({ params }: { params: Promise<{ id: 
                   </div>
                 ) : (
                   <div className="divide-y divide-white/[0.04]">
-                    {orders.map((order) => (
+                    {orders.map((order: Order) => (
                       <Link
                         key={order._id}
                         href={`/ops/orders/${order._id}`}

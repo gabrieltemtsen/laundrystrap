@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useMutation, useQuery } from 'convex/react'
 import { api } from '../../../../convex/_generated/api'
+import type { Price } from '@/lib/types'
 import { AppShell } from '@/components/app-shell'
 import {
   Badge,
@@ -96,7 +97,8 @@ export default function IntakePage() {
   const createCustomer = useMutation(api.customers.create)
   const createOrder = useMutation(api.orders.create)
   const addItem = useMutation(api.orderItems.addToOrder)
-  const prices = useQuery(api.prices.list, {})
+  const pricesRaw = useQuery(api.prices.list, {})
+  const prices = pricesRaw as Price[] | undefined
 
   const [customer, setCustomer] = useState({ name: '', phone: '', email: '', address: '', notes: '' })
   const [order, setOrder] = useState({ dueAt: '', service: '', bin: '', source: 'Walk-in', notes: '' })
@@ -110,7 +112,7 @@ export default function IntakePage() {
   const [errors, setErrors] = useState<string[]>([])
   const [showPrint, setShowPrint] = useState(false)
 
-  const priceMap = new Map(prices?.map((p) => [p.itemType, p.priceNgn]) ?? [])
+  const priceMap = new Map(prices?.map((p: Price) => [p.itemType, p.priceNgn]) ?? [])
   const totalPrice = items.reduce((sum, i) => sum + i.priceNgn, 0)
 
   function addItemRow() {
@@ -120,7 +122,7 @@ export default function IntakePage() {
       setErrors(['Tag ID already added to this order.'])
       return
     }
-    const p = priceMap.get(newItemName) ?? parseFloat(newItemPrice) || 0
+    const p = priceMap.get(newItemName) ?? (parseFloat(newItemPrice) || 0)
     setItems((prev) => [...prev, { tagId, name: newItemName.trim(), priceNgn: p }])
     setNewTag('')
     setNewItemName('')
@@ -318,7 +320,7 @@ export default function IntakePage() {
                       className="h-10 w-full rounded-md border border-white/10 bg-black/20 px-3 text-sm text-white outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/20"
                     >
                       <option value="">Select item…</option>
-                      {prices?.map((p) => (
+                      {prices?.map((p: Price) => (
                         <option key={p.itemType} value={p.itemType}>{p.itemType}</option>
                       ))}
                     </select>

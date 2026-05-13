@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useQuery, useMutation } from 'convex/react'
 import { api } from '../../../../convex/_generated/api'
+import type { Price } from '@/lib/types'
 import { AppShell } from '@/components/app-shell'
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle, CardDescription, Input } from '@/components/ui'
 import { Plus, Save, Trash2, Tag, Edit2, X, CheckCircle2, Loader2, AlertCircle } from 'lucide-react'
@@ -136,7 +137,7 @@ function PriceItem({
 }
 
 export default function PricesPage() {
-  const prices = useQuery(api.prices.list, {})
+  const pricesRaw = useQuery(api.prices.list, {})
   const upsert = useMutation(api.prices.upsert)
   const remove = useMutation(api.prices.remove)
 
@@ -145,7 +146,8 @@ export default function PricesPage() {
   const [addSaving, setAddSaving] = useState(false)
   const [successMsg, setSuccessMsg] = useState('')
 
-  const priceMap = new Map(prices?.map((p) => [p.itemType, p]) ?? [])
+  const prices = pricesRaw as Price[] | undefined
+  const priceMap = new Map(prices?.map((p: Price) => [p.itemType, p]) ?? [])
 
   async function handleSave(itemType: string, priceNgn: number, unit: string) {
     await upsert({ itemType, priceNgn, unit })
@@ -181,10 +183,10 @@ export default function PricesPage() {
 
   // Custom items (not in defaults)
   const customItems: PriceRow[] = (prices ?? [])
-    .filter((p) => !DEFAULT_ITEMS.find((d) => d.itemType === p.itemType))
-    .map((p) => ({ _id: p._id, itemType: p.itemType, priceNgn: p.priceNgn, unit: p.unit }))
+    .filter((p: Price) => !DEFAULT_ITEMS.find((d) => d.itemType === p.itemType))
+    .map((p: Price) => ({ _id: p._id, itemType: p.itemType, priceNgn: p.priceNgn, unit: p.unit }))
 
-  const setPricesCount = (prices ?? []).filter((p) => p.priceNgn > 0).length
+  const setPricesCount = (prices ?? []).filter((p: Price) => p.priceNgn > 0).length
 
   return (
     <AppShell>

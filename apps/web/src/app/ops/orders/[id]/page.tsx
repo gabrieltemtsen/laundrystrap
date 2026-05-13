@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { use, useState } from 'react'
 import { useQuery, useMutation } from 'convex/react'
 import { api } from '../../../../../convex/_generated/api'
+import type { Order, OrderItem } from '@/lib/types'
 import { AppShell } from '@/components/app-shell'
 import {
   Badge,
@@ -96,8 +97,8 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
   const { id } = use(params)
   const orderId = id as any
 
-  const order = useQuery(api.orders.getById, { orderId })
-  const items = useQuery(api.orderItems.listByOrder, { orderId })
+  const order = useQuery(api.orders.getById, { orderId }) as Order | null | undefined
+  const items = useQuery(api.orderItems.listByOrder, { orderId }) as OrderItem[] | undefined
   const updateStatus = useMutation(api.orders.updateStatus)
   const addItem = useMutation(api.orderItems.addToOrder)
   const updateItemStatus = useMutation(api.orderItems.updateItemStatus)
@@ -306,7 +307,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                     <div className="col-span-3">Location</div>
                     <div className="col-span-2">Status</div>
                   </div>
-                  {items.map((item) => (
+                  {items.map((item: OrderItem) => (
                     <div key={item._id} className="grid grid-cols-12 gap-2 border-t border-white/[0.04] px-3 py-3 items-center">
                       <div className="col-span-3 font-mono text-xs text-white/60">{item.tagId}</div>
                       <div className="col-span-4 text-sm text-white/80 truncate">{item.name}</div>
