@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation'
 import * as React from 'react'
 import { cn } from '@/lib/cn'
 import { ButtonLink, Container } from '@/components/ui'
-import { ClipboardList, LayoutDashboard, QrCode, Shirt, Sparkles } from 'lucide-react'
+import { ClipboardList, LayoutDashboard, QrCode, Shirt, Sparkles, Search } from 'lucide-react'
 
 const nav = [
   { href: '/ops', label: 'Dashboard', icon: LayoutDashboard },
@@ -64,32 +64,45 @@ function SidebarNav() {
 }
 
 function Topbar() {
+  const pathname = usePathname()
+
+  const title = React.useMemo(() => {
+    if (pathname === '/ops') return 'Dashboard'
+    if (pathname.startsWith('/ops/intake')) return 'Intake'
+    if (pathname.startsWith('/ops/scan')) return 'Scan'
+    if (pathname.startsWith('/ops/orders/')) return 'Order'
+    return 'Ops'
+  }, [pathname])
+
   return (
-    <header className="sticky top-0 z-10 border-b border-border/60 bg-black/20 backdrop-blur">
-      <Container className="flex h-16 items-center justify-between">
-        <div className="flex items-center gap-2 md:hidden">
+    <header className="sticky top-0 z-10 border-b border-border/60 bg-black/25 backdrop-blur supports-[backdrop-filter]:bg-black/25">
+      <Container className="flex h-16 items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/20 ring-1 ring-primary/30">
             <Shirt className="h-5 w-5 text-primary" />
           </div>
-          <div className="text-sm font-semibold">Ops</div>
+          <div className="leading-tight">
+            <div className="text-sm font-semibold text-white">{title}</div>
+            <div className="hidden text-xs text-muted md:block">LaundryStrap Ops</div>
+          </div>
         </div>
 
-        <div className="hidden items-center gap-2 md:flex">
-          <span className="text-sm text-muted">Quick actions:</span>
+        <div className="hidden flex-1 items-center justify-center md:flex">
+          <div className="flex w-full max-w-md items-center gap-2 rounded-full border border-border/60 bg-white/5 px-3 py-2 text-xs text-muted">
+            <Search className="h-4 w-4" />
+            Search orders, tags, customers…
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
           <ButtonLink href="/ops/intake" variant="primary" size="sm">
             <ClipboardList className="h-4 w-4" />
             New intake
           </ButtonLink>
-          <ButtonLink href="/ops/scan" variant="secondary" size="sm">
+          <ButtonLink href="/ops/scan" variant="secondary" size="sm" className="hidden sm:inline-flex">
             <QrCode className="h-4 w-4" />
             Scan
           </ButtonLink>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <div className="hidden rounded-full border border-border/60 bg-white/5 px-3 py-1 text-xs text-muted md:block">
-            Store: Default Tenant
-          </div>
         </div>
       </Container>
     </header>
