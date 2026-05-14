@@ -96,7 +96,7 @@ export default function IntakePage() {
   const router = useRouter()
   const createCustomer = useMutation(api.customers.create)
   const createOrder = useMutation(api.orders.create)
-  const addItem = useMutation(api.orderItems.addToOrder)
+  const addItem = useMutation(api.items.addToOrder)
   const pricesRaw = useQuery(api.prices.list, {})
   const prices = pricesRaw as Price[] | undefined
 

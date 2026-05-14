@@ -98,10 +98,10 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
   const orderId = id as any
 
   const order = useQuery(api.orders.getById, { orderId }) as Order | null | undefined
-  const items = useQuery(api.orderItems.listByOrder, { orderId }) as OrderItem[] | undefined
+  const items = useQuery(api.items.listByOrder, { orderId }) as OrderItem[] | undefined
   const updateStatus = useMutation(api.orders.updateStatus)
-  const addItem = useMutation(api.orderItems.addToOrder)
-  const updateItemStatus = useMutation(api.orderItems.updateItemStatus)
+  const addItem = useMutation(api.items.addToOrder)
+  const updateItemStatus = useMutation(api.items.updateItemStatus)
 
   const [statusUpdating, setStatusUpdating] = useState(false)
   const [showPrint, setShowPrint] = useState(false)
