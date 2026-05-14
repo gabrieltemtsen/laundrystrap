@@ -6,34 +6,23 @@ import { useQuery, useMutation } from 'convex/react'
 import { api } from '../../../../../convex/_generated/api'
 import type { Customer, Order } from '@/lib/types'
 import { AppShell } from '@/components/app-shell'
-import { Badge, Button, Card, CardContent, CardHeader, CardTitle, CardDescription, Input, Textarea } from '@/components/ui'
+import { Badge, Button, Card, CardContent, CardHeader, CardTitle, CardDescription, Input, Textarea, Spinner, EmptyState, ButtonLink } from '@/components/ui'
 import {
-  ArrowLeft,
-  Phone,
-  Mail,
-  MapPin,
-  Edit2,
-  Save,
-  X,
-  Package,
-  CheckCircle2,
-  Clock,
-  Droplets,
-  Loader2,
-  Plus,
+  ArrowLeft, Phone, Mail, MapPin,
+  Edit2, Save, X, Package, CheckCircle2, Clock, Droplets, Plus,
 } from 'lucide-react'
 
 function statusBadge(status: string) {
-  if (status === 'Ready for Pickup') return <Badge variant="success">Ready</Badge>
-  if (status === 'In Wash') return <Badge variant="warn">In Wash</Badge>
-  if (status === 'Completed') return <Badge variant="default">Completed</Badge>
-  return <Badge>Intake</Badge>
+  if (status === 'Ready for Pickup') return <Badge variant="success" dot>Ready</Badge>
+  if (status === 'In Wash')          return <Badge variant="cyan" dot>In Wash</Badge>
+  if (status === 'Completed')        return <Badge variant="default">Completed</Badge>
+  return <Badge dot>Intake</Badge>
 }
 
 function statusIcon(status: string) {
   if (status === 'Ready for Pickup') return <CheckCircle2 className="h-4 w-4 text-emerald-400" />
-  if (status === 'In Wash') return <Droplets className="h-4 w-4 text-blue-400" />
-  if (status === 'Completed') return <CheckCircle2 className="h-4 w-4 text-white/30" />
+  if (status === 'In Wash')          return <Droplets className="h-4 w-4 text-cyan-400" />
+  if (status === 'Completed')        return <CheckCircle2 className="h-4 w-4 text-[var(--muted)]" />
   return <Clock className="h-4 w-4 text-amber-400" />
 }
 
@@ -48,18 +37,18 @@ function initials(name: string) {
 }
 
 export default function CustomerProfilePage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params)
+  const { id }    = use(params)
   const customerId = id as any
 
   const customerRaw = useQuery(api.customers.getById, { customerId })
-  const ordersRaw = useQuery(api.customers.getOrdersByCustomer, { customerId })
-  const customer = customerRaw as Customer | null | undefined
-  const orders = ordersRaw as Order[] | undefined
+  const ordersRaw   = useQuery(api.customers.getOrdersByCustomer, { customerId })
+  const customer    = customerRaw as Customer | null | undefined
+  const orders      = ordersRaw as Order[] | undefined
   const updateCustomer = useMutation(api.customers.update)
 
   const [editing, setEditing] = useState(false)
-  const [saving, setSaving] = useState(false)
-  const [form, setForm] = useState({ name: '', phone: '', email: '', address: '', notes: '' })
+  const [saving, setSaving]   = useState(false)
+  const [form, setForm]       = useState({ name: '', phone: '', email: '', address: '', notes: '' })
 
   function startEdit() {
     if (!customer) return
@@ -94,9 +83,8 @@ export default function CustomerProfilePage({ params }: { params: Promise<{ id: 
   if (customer === undefined || orders === undefined) {
     return (
       <AppShell>
-        <div className="flex items-center justify-center gap-2 py-24 text-sm text-white/30">
-          <Loader2 className="h-5 w-5 animate-spin" />
-          Loading profile…
+        <div className="flex items-center justify-center gap-2 py-24 text-sm text-[var(--muted)]">
+          <Spinner className="h-5 w-5" /> Loading profile…
         </div>
       </AppShell>
     )
@@ -106,8 +94,8 @@ export default function CustomerProfilePage({ params }: { params: Promise<{ id: 
     return (
       <AppShell>
         <div className="flex flex-col items-center justify-center gap-4 py-24">
-          <p className="text-sm text-white/40">Customer not found.</p>
-          <Link href="/ops/customers" className="text-sm text-primary hover:underline flex items-center gap-1">
+          <p className="text-sm text-[var(--muted)]">Customer not found.</p>
+          <Link href="/ops/customers" className="text-sm text-indigo-400 hover:text-indigo-300 flex items-center gap-1 transition-colors">
             <ArrowLeft className="h-3.5 w-3.5" /> Back to customers
           </Link>
         </div>
@@ -116,7 +104,7 @@ export default function CustomerProfilePage({ params }: { params: Promise<{ id: 
   }
 
   const completedOrders = orders.filter((o: Order) => o.status === 'Completed').length
-  const activeOrders = orders.filter((o: Order) => o.status !== 'Completed').length
+  const activeOrders    = orders.filter((o: Order) => o.status !== 'Completed').length
 
   return (
     <AppShell>
@@ -124,21 +112,21 @@ export default function CustomerProfilePage({ params }: { params: Promise<{ id: 
         {/* Back nav */}
         <Link
           href="/ops/customers"
-          className="inline-flex items-center gap-1.5 text-sm text-white/40 hover:text-white transition-colors"
+          className="inline-flex items-center gap-1.5 text-sm text-[var(--muted)] hover:text-[var(--text)] transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
-          All customers
+          All Customers
         </Link>
 
         {/* Profile header */}
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-primary/15 ring-1 ring-primary/20 flex items-center justify-center text-xl font-bold text-primary">
+            <div className="w-14 h-14 rounded-2xl bg-indigo-500/15 border border-indigo-500/25 flex items-center justify-center text-xl font-black text-indigo-400">
               {initials(customer.name)}
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-white">{customer.name}</h1>
-              <p className="text-sm text-white/40 mt-0.5">
+              <h1 className="text-2xl font-black text-[var(--text)]">{customer.name}</h1>
+              <p className="text-sm text-[var(--muted)] mt-0.5">
                 Customer since {new Date(customer.createdAt).toLocaleDateString('en-NG', { year: 'numeric', month: 'long' })}
               </p>
             </div>
@@ -150,22 +138,18 @@ export default function CustomerProfilePage({ params }: { params: Promise<{ id: 
                   <Edit2 className="h-4 w-4" />
                   Edit Profile
                 </Button>
-                <Link
-                  href={`/ops/intake?customer=${customerId}`}
-                  className="inline-flex items-center gap-2 h-9 px-3 text-sm font-medium bg-primary text-white rounded-md hover:bg-primary/90 transition-colors"
-                >
+                <ButtonLink href={`/ops/intake?customer=${customerId}`} variant="primary" size="sm">
                   <Plus className="h-4 w-4" />
                   New Order
-                </Link>
+                </ButtonLink>
               </>
             ) : (
               <>
                 <Button variant="secondary" size="sm" onClick={() => setEditing(false)}>
-                  <X className="h-4 w-4" />
-                  Cancel
+                  <X className="h-4 w-4" /> Cancel
                 </Button>
                 <Button variant="primary" size="sm" onClick={saveEdit} disabled={saving}>
-                  {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                  {saving ? <Spinner className="h-4 w-4" /> : <Save className="h-4 w-4" />}
                   Save
                 </Button>
               </>
@@ -188,40 +172,35 @@ export default function CustomerProfilePage({ params }: { params: Promise<{ id: 
                     <Input label="Phone" value={form.phone} onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))} />
                     <Input label="Email" value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} />
                     <Input label="Address" value={form.address} onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))} />
-                    <Textarea
-                      label="Notes"
-                      value={form.notes}
-                      onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
-                      placeholder="Detergent preference, special care…"
-                    />
+                    <Textarea label="Notes" value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} placeholder="Detergent preference, special care…" />
                   </div>
                 ) : (
                   <div className="space-y-3">
                     {customer.phone && (
                       <div className="flex items-center gap-3">
-                        <Phone className="h-4 w-4 text-white/30 shrink-0" />
-                        <span className="text-sm text-white/80">{customer.phone}</span>
+                        <Phone className="h-4 w-4 text-[var(--muted)] shrink-0" />
+                        <span className="text-sm text-[var(--text-2)]">{customer.phone}</span>
                       </div>
                     )}
                     {customer.email && (
                       <div className="flex items-center gap-3">
-                        <Mail className="h-4 w-4 text-white/30 shrink-0" />
-                        <span className="text-sm text-white/80">{customer.email}</span>
+                        <Mail className="h-4 w-4 text-[var(--muted)] shrink-0" />
+                        <span className="text-sm text-[var(--text-2)]">{customer.email}</span>
                       </div>
                     )}
                     {customer.address && (
                       <div className="flex items-start gap-3">
-                        <MapPin className="h-4 w-4 text-white/30 shrink-0 mt-0.5" />
-                        <span className="text-sm text-white/80">{customer.address}</span>
+                        <MapPin className="h-4 w-4 text-[var(--muted)] shrink-0 mt-0.5" />
+                        <span className="text-sm text-[var(--text-2)]">{customer.address}</span>
                       </div>
                     )}
                     {!customer.phone && !customer.email && !customer.address && (
-                      <p className="text-sm text-white/25 italic">No contact info on file.</p>
+                      <p className="text-sm text-[var(--muted)] italic">No contact info on file.</p>
                     )}
                     {customer.notes && (
-                      <div className="mt-3 pt-3 border-t border-white/[0.06]">
-                        <p className="text-xs text-white/30 font-medium mb-1">Notes</p>
-                        <p className="text-sm text-white/60 leading-relaxed">{customer.notes}</p>
+                      <div className="mt-3 pt-3 border-t border-[var(--border)]">
+                        <p className="text-xs text-[var(--muted)] font-semibold uppercase tracking-wide mb-1">Notes</p>
+                        <p className="text-sm text-[var(--text-2)] leading-relaxed">{customer.notes}</p>
                       </div>
                     )}
                   </div>
@@ -232,17 +211,17 @@ export default function CustomerProfilePage({ params }: { params: Promise<{ id: 
             {/* Stats */}
             <Card>
               <CardContent className="pt-4 grid grid-cols-2 gap-3">
-                <div className="rounded-xl bg-white/[0.04] p-3 text-center">
-                  <p className="text-2xl font-bold text-white">{orders.length}</p>
-                  <p className="text-xs text-white/30 mt-0.5">Total Orders</p>
+                <div className="rounded-xl bg-[var(--surface-2)] border border-[var(--border)] p-3 text-center">
+                  <p className="text-2xl font-black text-[var(--text)]">{orders.length}</p>
+                  <p className="text-xs text-[var(--muted)] mt-0.5">Total Orders</p>
                 </div>
-                <div className="rounded-xl bg-white/[0.04] p-3 text-center">
-                  <p className="text-2xl font-bold text-emerald-400">{completedOrders}</p>
-                  <p className="text-xs text-white/30 mt-0.5">Completed</p>
+                <div className="rounded-xl bg-emerald-500/10 border border-emerald-500/20 p-3 text-center">
+                  <p className="text-2xl font-black text-emerald-400">{completedOrders}</p>
+                  <p className="text-xs text-[var(--muted)] mt-0.5">Completed</p>
                 </div>
-                <div className="rounded-xl bg-white/[0.04] p-3 text-center col-span-2">
-                  <p className="text-2xl font-bold text-amber-400">{activeOrders}</p>
-                  <p className="text-xs text-white/30 mt-0.5">Active Orders</p>
+                <div className="rounded-xl bg-amber-500/10 border border-amber-500/20 p-3 text-center col-span-2">
+                  <p className="text-2xl font-black text-amber-400">{activeOrders}</p>
+                  <p className="text-xs text-[var(--muted)] mt-0.5">Active Orders</p>
                 </div>
               </CardContent>
             </Card>
@@ -252,53 +231,48 @@ export default function CustomerProfilePage({ params }: { params: Promise<{ id: 
           <div className="lg:col-span-8">
             <Card>
               <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle>Order History</CardTitle>
-                    <CardDescription>All orders linked to this customer.</CardDescription>
-                  </div>
-                </div>
+                <CardTitle>Order History</CardTitle>
+                <CardDescription>All orders linked to this customer.</CardDescription>
               </CardHeader>
               <CardContent className="p-0">
                 {orders.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center gap-3 py-12">
-                    <Package className="h-8 w-8 text-white/15" />
-                    <p className="text-sm text-white/30">No orders yet for this customer.</p>
-                    <Link
-                      href={`/ops/intake?customer=${customerId}`}
-                      className="inline-flex items-center gap-2 h-9 px-4 text-sm font-medium bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
-                    >
-                      <Plus className="h-4 w-4" />
-                      Create first order
-                    </Link>
-                  </div>
+                  <EmptyState
+                    icon={Package}
+                    title="No orders yet"
+                    description="Create the first order for this customer."
+                    action={
+                      <ButtonLink href={`/ops/intake?customer=${customerId}`} variant="primary" size="sm">
+                        <Plus className="h-4 w-4" /> Create first order
+                      </ButtonLink>
+                    }
+                  />
                 ) : (
-                  <div className="divide-y divide-white/[0.04]">
+                  <div>
                     {orders.map((order: Order) => (
                       <Link
                         key={order._id}
                         href={`/ops/orders/${order._id}`}
-                        className="flex items-center gap-4 px-4 py-4 hover:bg-white/[0.03] transition-all group"
+                        className="flex items-center gap-4 px-5 py-4 hover:bg-[var(--surface-2)] transition-all group border-b border-[var(--border)]/60 last:border-0"
                       >
-                        <div className="w-9 h-9 rounded-xl bg-white/5 flex items-center justify-center shrink-0">
+                        <div className="w-9 h-9 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] flex items-center justify-center shrink-0">
                           {statusIcon(order.status)}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="font-semibold text-sm text-white group-hover:text-primary transition-colors">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-bold text-sm text-[var(--text)] group-hover:text-indigo-400 transition-colors font-mono">
                               {order.code}
                             </span>
                             {statusBadge(order.status)}
                           </div>
-                          <p className="text-xs text-white/30 mt-0.5">{formatDate(order.createdAt)}</p>
+                          <p className="text-xs text-[var(--muted)] mt-0.5">{formatDate(order.createdAt)}</p>
                         </div>
                         {order.totalPrice !== undefined && (
-                          <div className="text-sm font-semibold text-white/60 shrink-0">
+                          <div className="text-sm font-black shrink-0 font-mono" style={{ color: 'var(--naira)' }}>
                             ₦{order.totalPrice.toLocaleString()}
                           </div>
                         )}
                         {order.notes && (
-                          <p className="hidden lg:block text-xs text-white/30 max-w-[180px] truncate">{order.notes}</p>
+                          <p className="hidden lg:block text-xs text-[var(--muted)] max-w-[180px] truncate">{order.notes}</p>
                         )}
                       </Link>
                     ))}

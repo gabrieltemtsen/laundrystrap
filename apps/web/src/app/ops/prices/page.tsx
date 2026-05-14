@@ -6,7 +6,8 @@ import { api } from '../../../../convex/_generated/api'
 import type { Price } from '@/lib/types'
 import { AppShell } from '@/components/app-shell'
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle, CardDescription, Input } from '@/components/ui'
-import { Plus, Save, Trash2, Tag, Edit2, X, CheckCircle2, Loader2, AlertCircle } from 'lucide-react'
+import { Plus, Save, Trash2, Tag, Edit2, X, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react'
+import { Spinner } from '@/components/ui'
 
 const DEFAULT_ITEMS = [
   { itemType: 'Shirt', unit: 'per piece' },
@@ -58,12 +59,12 @@ function PriceItem({
   }
 
   return (
-    <div className={`flex items-center gap-3 px-4 py-3.5 border-b border-white/[0.04] last:border-0 transition-all ${editing ? 'bg-white/[0.03]' : 'hover:bg-white/[0.02]'}`}>
+    <div className={`flex items-center gap-3 px-5 py-3.5 border-b border-[var(--border)]/60 last:border-0 transition-all ${editing ? 'bg-[var(--surface-2)]' : 'hover:bg-[var(--surface-2)]'}`}>
       {/* Item name */}
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-white">{row.itemType}</p>
+        <p className="text-sm font-medium text-[var(--text)]">{row.itemType}</p>
         {!editing && (
-          <p className="text-xs text-white/30 mt-0.5">{row.unit}</p>
+          <p className="text-xs text-[var(--muted)] mt-0.5">{row.unit}</p>
         )}
       </div>
 
@@ -71,12 +72,12 @@ function PriceItem({
         <>
           <div className="flex items-center gap-2">
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-white/50">₦</span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-[var(--muted)]">₦</span>
               <input
                 type="number"
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
-                className="h-9 w-32 rounded-lg border border-white/10 bg-white/5 pl-7 pr-3 text-sm text-white outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/10"
+                className="h-9 w-32 rounded-lg border border-[var(--border)] bg-[var(--surface-3)] pl-7 pr-3 text-sm text-[var(--text)] outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
                 placeholder="0"
                 min="0"
               />
@@ -85,13 +86,13 @@ function PriceItem({
               type="text"
               value={unit}
               onChange={(e) => setUnit(e.target.value)}
-              className="h-9 w-28 rounded-lg border border-white/10 bg-white/5 px-3 text-sm text-white/80 outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/10"
+              className="h-9 w-28 rounded-lg border border-[var(--border)] bg-[var(--surface-3)] px-3 text-sm text-[var(--text-2)] outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
               placeholder="per piece"
             />
           </div>
           <div className="flex items-center gap-1.5">
             <Button variant="primary" size="sm" onClick={handleSave} disabled={saving}>
-              {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
+              {saving ? <Spinner className="h-3.5 w-3.5" /> : <Save className="h-3.5 w-3.5" />}
             </Button>
             <Button variant="ghost" size="sm" onClick={() => setEditing(false)}>
               <X className="h-3.5 w-3.5" />
@@ -102,9 +103,9 @@ function PriceItem({
         <>
           <div className="text-right">
             {row.priceNgn > 0 ? (
-              <p className="text-base font-bold text-white">₦{row.priceNgn.toLocaleString()}</p>
+              <p className="text-base font-black text-[var(--text)] font-mono" style={{ color: 'var(--naira)' }}>₦{row.priceNgn.toLocaleString()}</p>
             ) : (
-              <p className="text-sm text-white/25 italic">Not set</p>
+              <p className="text-sm text-[var(--muted)] italic">Not set</p>
             )}
           </div>
           <div className="flex items-center gap-1.5">
@@ -192,10 +193,10 @@ export default function PricesPage() {
     <AppShell>
       <div className="flex flex-col gap-6">
         {/* Header */}
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between mb-0">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-white">Price Settings</h1>
-            <p className="mt-1 text-sm text-white/40">
+            <h1 className="text-2xl font-black tracking-tight text-[var(--text)]">Pricing &amp; Services</h1>
+            <p className="mt-1 text-sm text-[var(--muted)]">
               {prices === undefined ? 'Loading…' : `${setPricesCount} item type${setPricesCount !== 1 ? 's' : ''} with prices set`}
             </p>
           </div>
@@ -207,7 +208,7 @@ export default function PricesPage() {
 
         {/* Success message */}
         {successMsg && (
-          <div className="flex items-center gap-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 px-4 py-3 text-sm text-emerald-300">
+          <div className="flex items-center gap-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 px-4 py-3 text-sm text-emerald-300 font-semibold">
             <CheckCircle2 className="h-4 w-4 shrink-0" />
             {successMsg} — price saved
           </div>
@@ -281,8 +282,8 @@ export default function PricesPage() {
           </CardHeader>
           <CardContent className="p-0">
             {prices === undefined ? (
-              <div className="flex items-center justify-center gap-2 py-10 text-sm text-white/30">
-                <Loader2 className="h-5 w-5 animate-spin" />
+              <div className="flex items-center justify-center gap-2 py-10 text-sm text-[var(--muted)]">
+                <Spinner className="h-5 w-5" />
                 Loading prices…
               </div>
             ) : (

@@ -16,10 +16,10 @@ import {
   CardTitle,
   Input,
   Textarea,
+  Spinner,
 } from '@/components/ui'
 import {
   CheckCircle2,
-  Loader2,
   Plus,
   Printer,
   ShieldCheck,
@@ -52,7 +52,7 @@ function PrintableTags({
           <div className="flex items-center gap-2">
             <button
               onClick={() => window.print()}
-              className="inline-flex items-center gap-2 h-9 px-4 bg-[#0B7A75] text-white text-sm font-semibold rounded-lg hover:bg-[#096b66] transition-colors"
+              className="inline-flex items-center gap-2 h-9 px-4 bg-indigo-600 text-white text-sm font-semibold rounded-lg hover:bg-indigo-700 transition-colors"
             >
               <Printer className="h-4 w-4" />
               Print
@@ -65,8 +65,7 @@ function PrintableTags({
             </button>
           </div>
         </div>
-
-        <div className="p-6">
+        <div id="tag-print-area" className="p-6">
           <div className="grid grid-cols-3 gap-4">
             {items.map((item) => (
               <div
@@ -95,28 +94,28 @@ function PrintableTags({
 export default function IntakePage() {
   const router = useRouter()
   const createCustomer = useMutation(api.customers.create)
-  const createOrder = useMutation(api.orders.create)
-  const addItem = useMutation(api.items.addToOrder)
-  const pricesRaw = useQuery(api.prices.list, {})
-  const prices = pricesRaw as Price[] | undefined
+  const createOrder    = useMutation(api.orders.create)
+  const addItem        = useMutation(api.items.addToOrder)
+  const pricesRaw      = useQuery(api.prices.list, {})
+  const prices         = pricesRaw as Price[] | undefined
 
   const [customer, setCustomer] = useState({ name: '', phone: '', email: '', address: '', notes: '' })
-  const [order, setOrder] = useState({ dueAt: '', service: '', bin: '', source: 'Walk-in', notes: '' })
-  const [items, setItems] = useState<{ tagId: string; name: string; priceNgn: number }[]>([])
-  const [newTag, setNewTag] = useState('')
+  const [order, setOrder]       = useState({ dueAt: '', service: '', bin: '', source: 'Walk-in', notes: '' })
+  const [items, setItems]       = useState<{ tagId: string; name: string; priceNgn: number }[]>([])
+  const [newTag, setNewTag]           = useState('')
   const [newItemName, setNewItemName] = useState('')
   const [newItemPrice, setNewItemPrice] = useState('')
 
   const [creating, setCreating] = useState(false)
-  const [result, setResult] = useState<OrderResult | null>(null)
-  const [errors, setErrors] = useState<string[]>([])
+  const [result, setResult]     = useState<OrderResult | null>(null)
+  const [errors, setErrors]     = useState<string[]>([])
   const [showPrint, setShowPrint] = useState(false)
 
-  const priceMap = new Map(prices?.map((p: Price) => [p.itemType, p.priceNgn]) ?? [])
+  const priceMap  = new Map(prices?.map((p: Price) => [p.itemType, p.priceNgn]) ?? [])
   const totalPrice = items.reduce((sum, i) => sum + i.priceNgn, 0)
 
   function addItemRow() {
-    if (!newTag.trim() || !newItemName.trim() || newItemName === '__custom__') return
+    if (!newTag.trim() || !newItemName.trim()) return
     const tagId = newTag.trim().toUpperCase()
     if (items.find((i) => i.tagId === tagId)) {
       setErrors(['Tag ID already added to this order.'])
@@ -184,6 +183,7 @@ export default function IntakePage() {
     }
   }
 
+  /* ── Success screen ── */
   if (result) {
     return (
       <AppShell>
@@ -199,14 +199,14 @@ export default function IntakePage() {
             <CheckCircle2 className="h-8 w-8 text-emerald-400" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-white">Order Created!</h2>
-            <p className="mt-2 text-white/50 text-sm">Share the code below with the customer to track their order.</p>
+            <h2 className="text-2xl font-black text-[var(--text)]">Order Created!</h2>
+            <p className="mt-2 text-[var(--muted)] text-sm">Share the code below with the customer to track their order.</p>
           </div>
-          <div className="w-full rounded-2xl bg-white/5 border border-white/10 p-6">
-            <p className="text-xs text-white/30 uppercase tracking-widest font-semibold mb-2">Reference Code</p>
-            <p className="text-4xl font-black text-white tracking-wider font-mono">{result.code}</p>
-            <p className="text-xs text-white/30 mt-3">Customer: {customer.name}</p>
-            {items.length > 0 && <p className="text-xs text-white/30">{items.length} item{items.length !== 1 ? 's' : ''} tagged</p>}
+          <div className="w-full rounded-2xl bg-[var(--surface-2)] border border-[var(--border)] p-6">
+            <p className="text-xs text-[var(--muted)] uppercase tracking-widest font-semibold mb-2">Reference Code</p>
+            <p className="text-4xl font-black text-[var(--text)] tracking-wider font-mono">{result.code}</p>
+            <p className="text-xs text-[var(--muted)] mt-3">Customer: {customer.name}</p>
+            {items.length > 0 && <p className="text-xs text-[var(--muted)]">{items.length} item{items.length !== 1 ? 's' : ''} tagged</p>}
             {totalPrice > 0 && <p className="text-sm font-semibold text-emerald-400 mt-2">Total: ₦{totalPrice.toLocaleString()}</p>}
           </div>
           <div className="flex flex-wrap gap-3 justify-center">
@@ -236,29 +236,36 @@ export default function IntakePage() {
     )
   }
 
+  /* ── Intake form ── */
   return (
     <AppShell>
       <div className="flex flex-col gap-6">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white">New Intake</h1>
-          <p className="mt-1 text-sm text-white/40">Register customer, create order, tag items — in that order.</p>
+          <h1 className="text-2xl font-black tracking-tight text-[var(--text)]">New Intake</h1>
+          <p className="mt-1 text-sm text-[var(--muted)]">Register customer, create order, tag items — in that order.</p>
         </div>
 
         {errors.length > 0 && (
           <div className="rounded-xl bg-red-500/10 border border-red-500/20 px-4 py-3 space-y-1">
-            {errors.map((e) => <p key={e} className="text-sm text-red-300">{e}</p>)}
+            {errors.map((e) => <p key={e} className="text-sm text-red-300 font-medium">{e}</p>)}
           </div>
         )}
 
         <div className="grid gap-5 lg:grid-cols-12">
+          {/* ── Left: forms ── */}
           <div className="lg:col-span-7 space-y-5">
+            {/* Customer */}
             <Card>
               <CardHeader>
-                <div className="flex items-center gap-2">
-                  <User className="h-4 w-4 text-primary" />
-                  <CardTitle>Customer Profile</CardTitle>
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center shrink-0">
+                    <User className="h-4 w-4 text-indigo-400" />
+                  </div>
+                  <div>
+                    <CardTitle>Customer Profile</CardTitle>
+                    <CardDescription>Saved and linked to all future orders.</CardDescription>
+                  </div>
                 </div>
-                <CardDescription>Saved and linked to all future orders from this customer.</CardDescription>
               </CardHeader>
               <CardContent className="grid gap-3 md:grid-cols-2">
                 <Input label="Full Name *" value={customer.name} onChange={(e) => setCustomer((f) => ({ ...f, name: e.target.value }))} placeholder="e.g. Amara Okafor" />
@@ -271,6 +278,7 @@ export default function IntakePage() {
               </CardContent>
             </Card>
 
+            {/* Order details */}
             <Card>
               <CardHeader>
                 <CardTitle>Order Details</CardTitle>
@@ -287,17 +295,19 @@ export default function IntakePage() {
               </CardContent>
             </Card>
 
+            {/* Items & Tags */}
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle>Items & Tags</CardTitle>
+                    <CardTitle>Items &amp; Tags</CardTitle>
                     <CardDescription>Tag every piece — one tag per item.</CardDescription>
                   </div>
                   {items.length > 0 && <Badge variant="success">{items.length} tagged</Badge>}
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
+                {/* Add item row */}
                 <div className="grid grid-cols-12 gap-2 items-end">
                   <div className="col-span-3">
                     <Input
@@ -309,7 +319,7 @@ export default function IntakePage() {
                     />
                   </div>
                   <div className="col-span-5">
-                    <label className="block text-sm font-medium text-white/90 mb-1">Item</label>
+                    <label className="block text-xs font-semibold text-[var(--text-2)] uppercase tracking-wide mb-1.5">Item</label>
                     <select
                       value={newItemName}
                       onChange={(e) => {
@@ -317,7 +327,7 @@ export default function IntakePage() {
                         const p = priceMap.get(e.target.value)
                         if (p !== undefined) setNewItemPrice(String(p))
                       }}
-                      className="h-10 w-full rounded-md border border-white/10 bg-black/20 px-3 text-sm text-white outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/20"
+                      className="h-10 w-full rounded-xl border border-[var(--border)] bg-[var(--surface-2)] px-3 text-sm text-[var(--text)] outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all"
                     >
                       <option value="">Select item…</option>
                       {prices?.map((p: Price) => (
@@ -327,7 +337,7 @@ export default function IntakePage() {
                   </div>
                   <div className="col-span-3">
                     <div className="relative">
-                      <span className="absolute left-3 top-[34px] text-sm text-white/40">₦</span>
+                      <span className="absolute left-3 top-[34px] text-sm text-[var(--muted)]">₦</span>
                       <Input label="Price" type="number" value={newItemPrice} onChange={(e) => setNewItemPrice(e.target.value)} placeholder="0" min="0" className="pl-7" />
                     </div>
                   </div>
@@ -338,40 +348,41 @@ export default function IntakePage() {
                   </div>
                 </div>
 
+                {/* Items table */}
                 {items.length > 0 && (
-                  <div className="rounded-xl overflow-hidden border border-white/[0.06]">
-                    <div className="grid grid-cols-12 gap-2 px-3 py-2 text-xs font-medium text-white/25 bg-white/[0.03]">
+                  <div className="rounded-xl overflow-hidden border border-[var(--border)]">
+                    <div className="grid grid-cols-12 gap-2 px-3 py-2 text-[10px] font-bold text-[var(--muted)] uppercase tracking-widest bg-[var(--surface-2)] border-b border-[var(--border)]">
                       <div className="col-span-3">Tag</div>
                       <div className="col-span-5">Item</div>
                       <div className="col-span-3">Price</div>
                       <div className="col-span-1" />
                     </div>
                     {items.map((item) => (
-                      <div key={item.tagId} className="grid grid-cols-12 gap-2 border-t border-white/[0.04] px-3 py-2.5 items-center">
-                        <div className="col-span-3 font-mono text-xs text-white/70">{item.tagId}</div>
-                        <div className="col-span-5 text-sm text-white/80 truncate">{item.name}</div>
+                      <div key={item.tagId} className="grid grid-cols-12 gap-2 border-t border-[var(--border)]/60 px-3 py-2.5 items-center hover:bg-[var(--surface-2)] transition-all">
+                        <div className="col-span-3 font-mono text-xs text-[var(--text-2)]">{item.tagId}</div>
+                        <div className="col-span-5 text-sm text-[var(--text)] truncate">{item.name}</div>
                         <div className="col-span-3">
                           <div className="relative">
-                            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-white/40">₦</span>
+                            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-[var(--muted)]">₦</span>
                             <input
                               type="number"
                               value={item.priceNgn || ''}
                               onChange={(e) => updateItemPrice(item.tagId, e.target.value)}
-                              className="h-7 w-full rounded-md border border-white/8 bg-white/5 pl-6 pr-2 text-xs text-white outline-none focus:border-primary/50"
+                              className="h-7 w-full rounded-lg border border-[var(--border)] bg-[var(--surface-3)] pl-6 pr-2 text-xs text-[var(--text)] outline-none focus:border-indigo-500/50"
                               min="0"
                             />
                           </div>
                         </div>
                         <div className="col-span-1 flex justify-end">
-                          <button onClick={() => removeItem(item.tagId)} className="w-6 h-6 rounded flex items-center justify-center text-white/20 hover:text-red-400 hover:bg-red-400/10 transition-all">
+                          <button onClick={() => removeItem(item.tagId)} className="w-6 h-6 rounded flex items-center justify-center text-[var(--muted)] hover:text-red-400 hover:bg-red-400/10 transition-all">
                             <X className="h-3.5 w-3.5" />
                           </button>
                         </div>
                       </div>
                     ))}
                     {totalPrice > 0 && (
-                      <div className="border-t border-white/[0.08] px-3 py-2.5 flex justify-end">
-                        <span className="text-sm font-bold text-white">Total: ₦{totalPrice.toLocaleString()}</span>
+                      <div className="border-t border-[var(--border)] px-3 py-2.5 flex justify-end bg-[var(--surface-2)]">
+                        <span className="text-sm font-black text-emerald-400 font-mono">Total: ₦{totalPrice.toLocaleString()}</span>
                       </div>
                     )}
                   </div>
@@ -380,47 +391,52 @@ export default function IntakePage() {
             </Card>
           </div>
 
+          {/* ── Right: checklist ── */}
           <div className="lg:col-span-5 space-y-5">
             <Card>
               <CardHeader>
                 <CardTitle>Intake Checklist</CardTitle>
                 <CardDescription>Complete before creating the order.</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-2.5">
-                <div className={`flex items-start gap-3 rounded-xl border p-3 transition-all ${customer.name ? 'border-emerald-500/30 bg-emerald-500/5' : 'border-white/[0.06] bg-white/[0.02]'}`}>
-                  <div className={`mt-0.5 h-4 w-4 rounded-full border-2 flex items-center justify-center shrink-0 ${customer.name ? 'border-emerald-400 bg-emerald-400/10' : 'border-white/20'}`}>
+              <CardContent className="space-y-3">
+                {/* Customer name check */}
+                <div className={`flex items-start gap-3 rounded-xl border p-3 transition-all ${customer.name ? 'border-emerald-500/30 bg-emerald-500/5' : 'border-[var(--border)] bg-[var(--surface-2)]'}`}>
+                  <div className={`mt-0.5 h-4 w-4 rounded-full border-2 flex items-center justify-center shrink-0 ${customer.name ? 'border-emerald-400 bg-emerald-400/20' : 'border-[var(--muted)]'}`}>
                     {customer.name && <div className="w-2 h-2 rounded-full bg-emerald-400" />}
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-white/90">Customer name</p>
-                    <p className="text-xs text-white/30">Required to save profile.</p>
+                    <p className="text-sm font-semibold text-[var(--text)]">Customer name</p>
+                    <p className="text-xs text-[var(--muted)]">Required to save profile.</p>
                   </div>
                   {customer.name && <Badge variant="success">Done</Badge>}
                 </div>
 
+                {/* Items check */}
                 <div className={`flex items-start gap-3 rounded-xl border p-3 transition-all ${items.length > 0 ? 'border-emerald-500/30 bg-emerald-500/5' : 'border-amber-500/20 bg-amber-500/5'}`}>
                   <ShieldCheck className={`mt-0.5 h-4 w-4 shrink-0 ${items.length > 0 ? 'text-emerald-400' : 'text-amber-400'}`} />
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-white/90">Tag every item</p>
-                    <p className="text-xs text-white/30">No tag = no chain of custody.</p>
+                    <p className="text-sm font-semibold text-[var(--text)]">Tag every item</p>
+                    <p className="text-xs text-[var(--muted)]">No tag = no chain of custody.</p>
                   </div>
                   {items.length > 0 ? <Badge variant="success">{items.length}</Badge> : <Badge variant="warn">Required</Badge>}
                 </div>
 
-                <div className="rounded-xl border border-dashed border-white/[0.08] bg-white/[0.02] p-3.5">
-                  <p className="text-xs font-semibold text-white/50 mb-1">Pro tip</p>
-                  <p className="text-xs text-white/30 leading-relaxed">
-                    If you're slammed — fill the name and hit Create. You can add tags from the order page later.
+                {/* Pro tip */}
+                <div className="rounded-xl border border-dashed border-[var(--border)] bg-[var(--surface-2)] p-3.5">
+                  <p className="text-xs font-bold text-indigo-400 mb-1">Pro tip</p>
+                  <p className="text-xs text-[var(--muted)] leading-relaxed">
+                    If you&apos;re slammed — fill the name and hit Create. You can add tags from the order page later.
                   </p>
                 </div>
 
+                {/* Summary */}
                 {(customer.name || items.length > 0) && (
-                  <div className="rounded-xl bg-white/[0.03] border border-white/[0.06] p-3.5 space-y-1.5">
-                    <p className="text-xs font-semibold text-white/30 uppercase tracking-wide">Summary</p>
-                    {customer.name && <p className="text-sm text-white/70"><span className="text-white/30">Customer:</span> {customer.name}</p>}
-                    {customer.phone && <p className="text-sm text-white/70"><span className="text-white/30">Phone:</span> {customer.phone}</p>}
-                    <p className="text-sm text-white/70"><span className="text-white/30">Items:</span> {items.length} tagged</p>
-                    {totalPrice > 0 && <p className="text-sm font-semibold text-emerald-400">Total: ₦{totalPrice.toLocaleString()}</p>}
+                  <div className="rounded-xl bg-[var(--surface-2)] border border-[var(--border)] p-3.5 space-y-1.5">
+                    <p className="text-xs font-bold text-[var(--muted)] uppercase tracking-widest">Summary</p>
+                    {customer.name && <p className="text-sm text-[var(--text)]"><span className="text-[var(--muted)]">Customer:</span> {customer.name}</p>}
+                    {customer.phone && <p className="text-sm text-[var(--text)]"><span className="text-[var(--muted)]">Phone:</span> {customer.phone}</p>}
+                    <p className="text-sm text-[var(--text)]"><span className="text-[var(--muted)]">Items:</span> {items.length} tagged</p>
+                    {totalPrice > 0 && <p className="text-sm font-bold text-emerald-400 font-mono">Total: ₦{totalPrice.toLocaleString()}</p>}
                   </div>
                 )}
 
@@ -431,7 +447,7 @@ export default function IntakePage() {
                   disabled={creating || !customer.name.trim()}
                 >
                   {creating ? (
-                    <><Loader2 className="h-5 w-5 animate-spin" /> Creating…</>
+                    <><Spinner className="h-5 w-5" /> Creating…</>
                   ) : (
                     <><Shirt className="h-5 w-5" /> Create Order</>
                   )}

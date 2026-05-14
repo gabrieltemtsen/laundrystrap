@@ -5,22 +5,29 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        primary: 'var(--color-primary)',
-        accent:  'var(--color-accent)',
-        muted:   'var(--color-muted)',
-        border:  'var(--color-border)',
-        surface: 'var(--color-surface)',
+        primary:   'var(--primary)',
+        'primary-2': 'var(--primary-2)',
+        surface:   'var(--surface)',
+        'surface-2': 'var(--surface-2)',
+        'surface-3': 'var(--surface-3)',
+        border:    'var(--border)',
+        'border-strong': 'var(--border-strong)',
+        muted:     'var(--muted)',
+        'text-2':  'var(--text-2)',
       },
       fontFamily: {
-        sans: ['var(--font-sans)', 'Inter', 'system-ui', 'sans-serif'],
+        sans:  ['var(--font-sans)', 'Montserrat', 'Inter', 'system-ui', 'sans-serif'],
+        mono:  ['var(--font-mono)', 'Geist Mono', 'monospace'],
+        display: ['var(--font-sans)', 'Montserrat', 'sans-serif'],
       },
       borderRadius: {
         DEFAULT: 'var(--radius)',
+        lg: 'var(--radius-lg)',
       },
       boxShadow: {
-        soft: '0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06)',
-        glow: '0 0 0 1px rgba(99,102,241,0.1), 0 8px 40px rgba(99,102,241,0.12), 0 4px 16px rgba(0,0,0,0.08)',
-        card: '0 4px 24px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04)',
+        glow: 'var(--shadow-glow)',
+        card: 'var(--shadow-card)',
+        soft: '0 1px 3px rgba(0,0,0,0.08)',
       },
     },
   },
