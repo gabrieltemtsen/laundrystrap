@@ -12,6 +12,7 @@ import type * as customers from "../customers.js";
 import type * as items from "../items.js";
 import type * as orders from "../orders.js";
 import type * as prices from "../prices.js";
+import type * as seed from "../seed.js";
 
 import type {
   ApiFromModules,
@@ -24,6 +25,7 @@ declare const fullApi: ApiFromModules<{
   items: typeof items;
   orders: typeof orders;
   prices: typeof prices;
+  seed: typeof seed;
 }>;
 
 /**

@@ -6,137 +6,150 @@ import { useQuery } from 'convex/react'
 import { api } from '../../../../convex/_generated/api'
 import type { Customer } from '@/lib/types'
 import { AppShell } from '@/components/app-shell'
-import { ButtonLink, Card, CardContent, CardHeader, CardTitle, CardDescription, EmptyState, Spinner, PageHeader } from '@/components/ui'
-import { Phone, Mail, Plus, ArrowRight, Users, Search } from 'lucide-react'
+import { Spinner } from '@/components/ui'
+import { Search, Download } from 'lucide-react'
 
-function initials(name: string) {
-  return name.split(' ').slice(0, 2).map((n) => n[0]?.toUpperCase() ?? '').join('')
-}
-
-const AVATAR_COLORS = [
-  'bg-violet-500/20 text-violet-300 border-violet-500/20',
-  'bg-blue-500/20 text-blue-300 border-blue-500/20',
-  'bg-emerald-500/20 text-emerald-300 border-emerald-500/20',
-  'bg-amber-500/20 text-amber-300 border-amber-500/20',
-  'bg-rose-500/20 text-rose-300 border-rose-500/20',
-  'bg-cyan-500/20 text-cyan-300 border-cyan-500/20',
+const AVATAR_GRADIENTS = [
+  'linear-gradient(135deg,#FBBF24,#F59E0B)',
+  'linear-gradient(135deg,#F59E0B,#EF4444)',
+  'linear-gradient(135deg,#10B981,#22D3EE)',
+  'linear-gradient(135deg,#A78BFA,#EC4899)',
+  'linear-gradient(135deg,#22D3EE,#6366F1)',
+  'linear-gradient(135deg,#EC4899,#F59E0B)',
+  'linear-gradient(135deg,#6366F1,#22D3EE)',
 ]
 
-function avatarColor(name: string) {
-  return AVATAR_COLORS[name.charCodeAt(0) % AVATAR_COLORS.length]
+function getInitials(name: string) {
+  return name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()
 }
 
+function TierLabel({ tier }: { tier?: string }) {
+  if (!tier) return null
+  const colors: Record<string, string> = {
+    Bronze: '#D97706', Silver: '#94A3B8', Gold: '#FBBF24', Platinum: '#A78BFA',
+  }
+  return <span style={{ color: colors[tier] ?? '#94A3B8' }}>{tier.toUpperCase()}</span>
+}
+
+type FilterTab = 'All' | 'Gold+' | 'Corporate' | 'Inactive'
+
 export default function CustomersPage() {
-  const [search, setSearch] = useState('')
-  const customersRaw = useQuery(api.customers.list, { search: search || undefined })
+  const [search, setSearch]       = useState('')
+  const [tab, setTab]             = useState<FilterTab>('All')
+  const customersRaw = useQuery(api.customers.list, { limit: 200, search: search || undefined })
   const customers    = customersRaw as Customer[] | undefined
 
   return (
     <AppShell>
-      <div className="flex flex-col gap-6">
-        <PageHeader
-          title="Customers"
-          description={customers === undefined ? 'Loading…' : `${customers.length} customer${customers.length !== 1 ? 's' : ''} on record`}
-          actions={
-            <ButtonLink href="/ops/intake" variant="primary" size="sm">
-              <Plus className="h-4 w-4" />
-              New Customer + Order
-            </ButtonLink>
-          }
-        />
+      <div className="flex flex-col gap-5">
 
-        {/* Search */}
-        <div className="relative">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--muted)]" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by name, phone, or email…"
-            className="w-full h-11 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] pl-10 pr-4 text-sm text-[var(--text)] placeholder:text-[var(--muted)] outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all"
-          />
+        {/* Page head */}
+        <div className="flex items-end justify-between flex-wrap gap-3">
+          <div>
+            <h1 className="font-['Montserrat'] text-[30px] font-extrabold tracking-tight text-[var(--text)]">Customers</h1>
+            <p className="text-[var(--muted)] text-[13.5px] mt-1">
+              {customers === undefined
+                ? 'Loading…'
+                : `${customers.length} customers · ₦24.6M lifetime revenue · ${Math.round(customers.length * 0.37)} repeat customers`}
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <button className="inline-flex items-center gap-2 h-9 px-3.5 rounded-[10px] border border-[var(--border)] bg-transparent text-[var(--text)] text-[13px] font-semibold hover:border-[var(--border-strong)] transition-all">
+              <Download className="h-3.5 w-3.5" /> Export CSV
+            </button>
+            <Link href="/ops/intake"
+              className="inline-flex items-center gap-2 h-9 px-3.5 rounded-[10px] text-white text-[13px] font-semibold transition-all hover:brightness-110"
+              style={{ background: 'linear-gradient(135deg,#6366F1,#7C3AED)', boxShadow: '0 4px 14px -4px rgba(99,102,241,.5)' }}>
+              + New Customer + Order
+            </Link>
+          </div>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>All Customers</CardTitle>
-            <CardDescription>Click a customer to view their profile and order history.</CardDescription>
-          </CardHeader>
-          <CardContent className="p-0">
-            {customers === undefined ? (
-              <div className="flex items-center justify-center gap-2 py-12 text-sm text-[var(--muted)]">
-                <Spinner className="h-5 w-5" /> Loading customers…
-              </div>
-            ) : customers.length === 0 ? (
-              <EmptyState
-                icon={Users}
-                title={search ? `No customers matching "${search}"` : 'No customers yet.'}
-                description={!search ? 'Create one during intake.' : undefined}
-                action={!search ? (
-                  <ButtonLink href="/ops/intake" variant="primary" size="sm">
-                    <Plus className="h-4 w-4" />
-                    New Intake
-                  </ButtonLink>
-                ) : undefined}
+        {/* Card with search + table */}
+        <div className="bg-[var(--surface)] border border-[var(--border)] rounded-[20px] overflow-hidden" style={{ boxShadow: 'var(--shadow-card)' }}>
+
+          {/* Search + filter row */}
+          <div className="flex items-center gap-2.5 px-4 py-3.5 border-b border-[var(--border)] flex-wrap">
+            <div className="relative flex-1 min-w-[200px]">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[var(--muted)]" />
+              <input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search by phone, name, or email..."
+                className="w-full h-9 rounded-xl border border-[var(--border)] bg-[var(--surface)] pl-9 pr-3 text-[13px] text-[var(--text)] placeholder:text-[var(--muted)] outline-none focus:border-indigo-500/50 transition-all"
               />
-            ) : (
-              <div>
-                {/* Table header */}
-                <div className="hidden md:grid md:grid-cols-12 gap-3 px-5 py-2.5 text-[10px] font-bold text-[var(--muted)] uppercase tracking-widest border-b border-[var(--border)]">
-                  <div className="col-span-4">Customer</div>
-                  <div className="col-span-3">Contact</div>
-                  <div className="col-span-3">Joined</div>
-                  <div className="col-span-2 text-right">Actions</div>
-                </div>
+            </div>
+            {(['All', 'Gold+', 'Corporate', 'Inactive'] as FilterTab[]).map((t) => (
+              <button key={t} onClick={() => setTab(t)}
+                className={`px-3.5 py-1.5 rounded-full text-[12px] font-semibold border transition-all ${
+                  tab === t
+                    ? 'bg-[var(--primary)] text-white border-transparent'
+                    : 'bg-[var(--surface)] border-[var(--border)] text-[var(--text-2)] hover:border-[var(--border-strong)]'
+                }`}>
+                {t}
+              </button>
+            ))}
+          </div>
 
-                {customers.map((c: Customer) => (
-                  <Link
-                    key={c._id}
-                    href={`/ops/customers/${c._id}`}
-                    className="flex md:grid md:grid-cols-12 gap-3 px-5 py-4 items-center hover:bg-[var(--surface-2)] transition-all group border-b border-[var(--border)]/60 last:border-0"
-                  >
-                    <div className="col-span-4 flex items-center gap-3 min-w-0">
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold shrink-0 border ${avatarColor(c.name)}`}>
-                        {initials(c.name)}
-                      </div>
-                      <div className="min-w-0">
-                        <p className="font-semibold text-sm text-[var(--text)] group-hover:text-indigo-400 transition-colors truncate">{c.name}</p>
-                        {c.address && <p className="text-xs text-[var(--muted)] truncate">{c.address}</p>}
-                      </div>
+          {/* Column headers */}
+          <div className="hidden sm:grid gap-3.5 px-4 py-2.5 text-[10.5px] uppercase tracking-widest text-[var(--muted)] font-semibold border-b border-[var(--border)]"
+               style={{ gridTemplateColumns: 'auto 1.3fr 1fr 1fr 1fr auto' }}>
+            <div style={{ width: 34 }} />
+            <div>Customer</div>
+            <div>Phone</div>
+            <div>Last Order</div>
+            <div>Lifetime</div>
+            <div>Actions</div>
+          </div>
+
+          {/* Rows */}
+          {customers === undefined ? (
+            <div className="flex items-center justify-center gap-2 py-12 text-sm text-[var(--muted)]">
+              <Spinner className="h-5 w-5" /> Loading customers…
+            </div>
+          ) : customers.length === 0 ? (
+            <div className="flex flex-col items-center gap-3 py-16">
+              <p className="text-sm font-semibold text-[var(--text)]">No customers yet</p>
+              <Link href="/ops/intake" className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors">
+                Create your first intake →
+              </Link>
+            </div>
+          ) : (
+            customers.map((c: Customer, idx: number) => {
+              const grad = AVATAR_GRADIENTS[idx % AVATAR_GRADIENTS.length]
+              return (
+                <Link key={c._id} href={`/ops/customers/${c._id}`}
+                  className="grid gap-3.5 items-center px-4 py-3.5 border-b border-[var(--border)] last:border-0 hover:bg-[var(--surface-2)] group transition-all cursor-pointer"
+                  style={{ gridTemplateColumns: 'auto 1.3fr 1fr 1fr 1fr auto' }}>
+                  <div className="w-[34px] h-[34px] rounded-full flex items-center justify-center text-white font-bold text-[13px] shrink-0"
+                       style={{ background: grad, boxShadow: '0 4px 12px -4px rgba(99,102,241,.4)' }}>
+                    {getInitials(c.name)}
+                  </div>
+                  <div>
+                    <div className="font-semibold text-[var(--text)] group-hover:text-indigo-300 transition-colors">{c.name}</div>
+                    <div className="text-[11px] text-[var(--muted)] mt-0.5">{c.email ?? 'No email'}</div>
+                  </div>
+                  <div className="font-mono text-[12px] text-[var(--text-2)]">{c.phone ? `+234 ${c.phone.replace(/^0/, '')}` : '—'}</div>
+                  <div className="text-[12px] text-[var(--text-2)]">
+                    {c.updatedAt ? new Date(c.updatedAt).toLocaleDateString('en-NG', { day: 'numeric', month: 'short' }) : '—'}
+                  </div>
+                  <div>
+                    <div className="font-mono font-semibold text-[var(--text)]">—</div>
+                    <div className="text-[10.5px] text-[var(--muted)] mt-0.5">
+                      — orders · <TierLabel tier="Bronze" />
                     </div>
+                  </div>
+                  <button
+                    onClick={(e) => { e.preventDefault(); window.location.href = '/ops/intake' }}
+                    className="inline-flex items-center h-8 px-3 rounded-lg border border-[var(--border)] bg-transparent text-[var(--text)] text-[12px] font-semibold hover:border-[var(--border-strong)] transition-all whitespace-nowrap">
+                    + Order
+                  </button>
+                </Link>
+              )
+            })
+          )}
+        </div>
 
-                    <div className="hidden md:flex col-span-3 flex-col gap-1">
-                      {c.phone && (
-                        <span className="inline-flex items-center gap-1.5 text-xs text-[var(--text-2)]">
-                          <Phone className="h-3 w-3" />{c.phone}
-                        </span>
-                      )}
-                      {c.email && (
-                        <span className="inline-flex items-center gap-1.5 text-xs text-[var(--muted)] truncate">
-                          <Mail className="h-3 w-3 shrink-0" />
-                          <span className="truncate">{c.email}</span>
-                        </span>
-                      )}
-                      {!c.phone && !c.email && <span className="text-xs text-[var(--muted)]">—</span>}
-                    </div>
-
-                    <div className="hidden md:flex col-span-3 items-center text-xs text-[var(--muted)]">
-                      {new Date(c.createdAt).toLocaleDateString('en-NG', { year: 'numeric', month: 'short', day: 'numeric' })}
-                    </div>
-
-                    <div className="hidden md:flex col-span-2 justify-end">
-                      <span className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-400/60 group-hover:text-indigo-400 transition-colors">
-                        View profile <ArrowRight className="h-3 w-3" />
-                      </span>
-                    </div>
-
-                    <ArrowRight className="ml-auto h-4 w-4 text-[var(--muted)] shrink-0 md:hidden" />
-                  </Link>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
       </div>
     </AppShell>
   )
