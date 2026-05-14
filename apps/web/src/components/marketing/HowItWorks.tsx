@@ -1,58 +1,70 @@
-import Link from 'next/link'
-import { ArrowRight, CheckCircle2 } from 'lucide-react'
+import { Camera, Tag, ShieldCheck } from 'lucide-react'
 
 const steps = [
   {
-    step: '01',
-    title: 'Drop off or request pickup',
-    desc: 'Bring your items to the shop or schedule a pickup in minutes.',
+    number: '01',
+    icon: Camera,
+    color: 'bg-indigo-600',
+    title: 'Drop off — we photograph everything',
+    desc: 'Every garment gets a clear photo at intake. Timestamped, stored, and tied to your order reference.',
   },
   {
-    step: '02',
-    title: 'We photograph & tag every item',
-    desc: 'Each garment gets a QR tag and a clear photo captured at intake.',
+    number: '02',
+    icon: Tag,
+    color: 'bg-purple-600',
+    title: 'Each item gets a physical tag',
+    desc: 'A unique QR tag is attached to every piece. If it ever moves, we know about it.',
   },
   {
-    step: '03',
-    title: 'Track progress, verify at pickup',
-    desc: 'Statuses update as your items move through wash, dry, iron, and packaging.',
+    number: '03',
+    icon: ShieldCheck,
+    color: 'bg-cyan-600',
+    title: 'Track from your phone — no app needed',
+    desc: 'Enter your reference code here anytime to see real-time status: washing, drying, ready for pickup.',
   },
 ]
 
 export function HowItWorks() {
   return (
-    <section className="bg-gray-50">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-16">
-        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
-          <div>
-            <p className="text-sm font-semibold text-[color:var(--color-primary)]">How it works</p>
-            <h2 className="mt-2 text-3xl sm:text-4xl font-extrabold tracking-tight text-gray-900">
-              Built for trust — not vibes.
-            </h2>
-            <p className="mt-4 text-gray-600 max-w-2xl">
-              The LaundryStrap system creates an audit trail for every garment. If something goes wrong,
-              we can trace exactly what happened — and who last handled it.
-            </p>
-          </div>
-          <Link
-            href="/how-it-works"
-            className="inline-flex items-center gap-2 text-sm font-semibold text-gray-900 hover:text-[color:var(--color-primary)]"
-          >
-            See the full walkthrough <ArrowRight className="w-4 h-4" />
-          </Link>
+    <section id="how-it-works" className="bg-zinc-950 text-white overflow-hidden">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-20 md:py-28">
+        {/* Heading */}
+        <div className="max-w-2xl mb-16">
+          <p className="text-xs font-bold uppercase tracking-widest text-indigo-400 mb-3">How it works</p>
+          <h2 className="text-4xl sm:text-5xl font-black tracking-tight leading-tight">
+            Built for trust —{' '}
+            <span className="bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent">
+              not vibes.
+            </span>
+          </h2>
+          <p className="mt-4 text-zinc-400 text-lg leading-relaxed">
+            The LaundryStrap system creates a full audit trail for every garment, every time.
+          </p>
         </div>
 
-        <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-6">
-          {steps.map((s) => (
-            <div key={s.step} className="rounded-2xl bg-white border border-gray-100 p-7">
-              <div className="flex items-center justify-between">
-                <p className="text-xs font-bold text-gray-400">STEP {s.step}</p>
-                <CheckCircle2 className="w-5 h-5 text-[color:var(--color-primary)]" />
+        {/* Steps */}
+        <div className="grid md:grid-cols-3 gap-6">
+          {steps.map((s) => {
+            const Icon = s.icon
+            return (
+              <div
+                key={s.number}
+                className="group relative rounded-2xl bg-zinc-900 border border-zinc-800 p-8 overflow-hidden hover:border-zinc-700 transition-all hover:-translate-y-1"
+              >
+                {/* Number watermark */}
+                <div className="absolute top-4 right-5 text-7xl font-black text-zinc-800/60 leading-none select-none">
+                  {s.number}
+                </div>
+
+                <div className={`w-12 h-12 rounded-2xl ${s.color} flex items-center justify-center mb-6 shadow-lg`}>
+                  <Icon className="w-6 h-6 text-white" />
+                </div>
+
+                <h3 className="font-bold text-lg text-white leading-snug mb-3">{s.title}</h3>
+                <p className="text-zinc-400 text-sm leading-relaxed">{s.desc}</p>
               </div>
-              <h3 className="mt-3 text-lg font-bold text-gray-900">{s.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-gray-600">{s.desc}</p>
-            </div>
-          ))}
+            )
+          })}
         </div>
       </div>
     </section>

@@ -1,48 +1,63 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Menu, X, Shirt } from 'lucide-react'
+import { Menu, X, Zap } from 'lucide-react'
 
 const links = [
-  { label: 'Services', href: '/services' },
+  { label: 'Services',     href: '/services' },
   { label: 'How It Works', href: '/#how-it-works' },
-  { label: 'About', href: '/about' },
-  { label: 'FAQ', href: '/faq' },
+  { label: 'About',        href: '/about' },
+  { label: 'FAQ',          href: '/faq' },
 ]
 
 export function Navbar() {
-  const [open, setOpen] = useState(false)
+  const [open, setOpen]         = useState(false)
+  const [scrolled, setScrolled] = useState(false)
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8)
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
 
   return (
-    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-gray-100 shadow-sm">
+    <header
+      className={`sticky top-0 z-50 transition-all duration-300 ${
+        scrolled
+          ? 'bg-white/95 backdrop-blur-md shadow-sm border-b border-zinc-100'
+          : 'bg-white'
+      }`}
+    >
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 font-bold text-xl text-[#0F3460]">
-          <span className="bg-gradient-to-br from-[#0B7A75] to-[#096b66] text-white rounded-xl p-2 shadow-md shadow-[#0B7A75]/20">
-            <Shirt className="w-4 h-4" />
+        <Link href="/" className="flex items-center gap-2.5 group">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-indigo-200 group-hover:scale-105 transition-transform">
+            <Zap className="w-4 h-4 text-white" />
+          </div>
+          <span className="font-black text-xl tracking-tight text-zinc-900">
+            Laundry<span className="text-indigo-600">Strap</span>
           </span>
-          LaundryStrap
         </Link>
 
         {/* Desktop nav */}
-        <nav className="hidden md:flex items-center gap-8">
+        <nav className="hidden md:flex items-center gap-1">
           {links.map((l) => (
             <Link
               key={l.href}
               href={l.href}
-              className="text-sm text-gray-500 hover:text-[#0B7A75] transition-colors font-medium"
+              className="px-4 py-2 text-sm font-medium text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50 rounded-lg transition-all"
             >
               {l.label}
             </Link>
           ))}
         </nav>
 
-        {/* Operator portal link */}
-        <div className="hidden md:flex items-center">
+        {/* CTA */}
+        <div className="hidden md:flex items-center gap-3">
           <Link
             href="/ops"
-            className="text-sm font-semibold text-[#0B7A75] border border-[#0B7A75]/30 hover:border-[#0B7A75] hover:bg-[#0B7A75]/5 px-4 py-2 rounded-lg transition-all"
+            className="h-9 px-5 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-all shadow-lg shadow-indigo-200 hover:shadow-indigo-300 hover:-translate-y-px flex items-center"
           >
             Operator Portal
           </Link>
@@ -51,7 +66,8 @@ export function Navbar() {
         {/* Mobile toggle */}
         <button
           onClick={() => setOpen(!open)}
-          className="md:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100"
+          className="md:hidden w-9 h-9 flex items-center justify-center rounded-xl text-zinc-600 hover:bg-zinc-100 transition-colors"
+          aria-label="Toggle menu"
         >
           {open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </button>
@@ -59,24 +75,26 @@ export function Navbar() {
 
       {/* Mobile menu */}
       {open && (
-        <div className="md:hidden border-t border-gray-100 bg-white px-4 py-4 space-y-1">
+        <div className="md:hidden border-t border-zinc-100 bg-white px-4 py-3 space-y-0.5">
           {links.map((l) => (
             <Link
               key={l.href}
               href={l.href}
-              className="block text-sm font-medium text-gray-700 py-2.5 border-b border-gray-50 last:border-0"
+              className="block text-sm font-medium text-zinc-700 py-2.5 px-3 rounded-lg hover:bg-zinc-50 transition-colors"
               onClick={() => setOpen(false)}
             >
               {l.label}
             </Link>
           ))}
-          <Link
-            href="/ops"
-            className="block w-full text-center text-[#0B7A75] border border-[#0B7A75]/40 text-sm font-semibold px-5 py-3 rounded-lg mt-3"
-            onClick={() => setOpen(false)}
-          >
-            Operator Portal
-          </Link>
+          <div className="pt-2">
+            <Link
+              href="/ops"
+              className="block w-full text-center text-white bg-indigo-600 hover:bg-indigo-700 text-sm font-semibold px-5 py-3 rounded-xl transition-colors"
+              onClick={() => setOpen(false)}
+            >
+              Operator Portal
+            </Link>
+          </div>
         </div>
       )}
     </header>
