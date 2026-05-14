@@ -316,7 +316,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                         <select
                           value={item.status}
                           onChange={async (e) => {
-                            await updateItemStatus({ itemId: item._id, status: e.target.value as any })
+                            await updateItemStatus({ itemId: item._id as any, status: e.target.value as any })
                           }}
                           className="h-7 w-full rounded-md border border-white/8 bg-white/5 px-2 text-[11px] text-white/70 outline-none focus:border-primary/50 cursor-pointer"
                         >
