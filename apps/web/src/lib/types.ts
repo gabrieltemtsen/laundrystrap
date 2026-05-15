@@ -51,3 +51,22 @@ export type Price = {
 }
 
 export type OrderWithItems = Order & { items: OrderItem[] }
+
+export type TransactionMethod = 'Cash' | 'Transfer' | 'Paystack' | 'POS' | 'Invoice'
+export type TransactionStatus = 'Paid' | 'Pending' | 'Overdue' | 'Waived'
+
+export type Transaction = {
+  _id: string
+  orderId: string
+  customerId?: string
+  customerName: string
+  orderCode: string
+  amountNgn: number
+  method: TransactionMethod
+  status: TransactionStatus
+  reference?: string
+  notes?: string
+  collectedBy?: string
+  createdAt: number
+  updatedAt: number
+}

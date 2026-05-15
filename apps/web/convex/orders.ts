@@ -21,19 +21,33 @@ export const list = query({
       ),
     ),
     limit: v.optional(v.number()),
+    search: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const limit = Math.min(Math.max(args.limit ?? 50, 1), 200)
 
+    let orders
     if (args.status) {
-      return await ctx.db
+      orders = await ctx.db
         .query('orders')
         .withIndex('by_status', (q) => q.eq('status', args.status!))
         .order('desc')
         .take(limit)
+    } else {
+      orders = await ctx.db.query('orders').withIndex('by_createdAt').order('desc').take(limit)
     }
 
-    return await ctx.db.query('orders').withIndex('by_createdAt').order('desc').take(limit)
+    if (args.search) {
+      const q = args.search.toLowerCase()
+      return orders.filter(
+        (o) =>
+          o.code.toLowerCase().includes(q) ||
+          o.customerName.toLowerCase().includes(q) ||
+          (o.customerPhone ?? '').includes(q),
+      )
+    }
+
+    return orders
   },
 })
 

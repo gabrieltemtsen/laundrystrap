@@ -62,4 +62,34 @@ export default defineSchema({
     unit: v.string(),
     updatedAt: v.number(),
   }).index('by_itemType', ['itemType']),
+
+  transactions: defineTable({
+    orderId: v.id('orders'),
+    customerId: v.optional(v.id('customers')),
+    customerName: v.string(),
+    orderCode: v.string(),
+    amountNgn: v.number(),
+    method: v.union(
+      v.literal('Cash'),
+      v.literal('Transfer'),
+      v.literal('Paystack'),
+      v.literal('POS'),
+      v.literal('Invoice'),
+    ),
+    status: v.union(
+      v.literal('Paid'),
+      v.literal('Pending'),
+      v.literal('Overdue'),
+      v.literal('Waived'),
+    ),
+    reference: v.optional(v.string()),
+    notes: v.optional(v.string()),
+    collectedBy: v.optional(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index('by_order', ['orderId'])
+    .index('by_customer', ['customerId'])
+    .index('by_status', ['status'])
+    .index('by_createdAt', ['createdAt']),
 })
