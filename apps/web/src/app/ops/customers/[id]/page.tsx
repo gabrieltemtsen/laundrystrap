@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { use, useState } from 'react'
+import { useState } from 'react'
 import { useQuery, useMutation } from 'convex/react'
 import { api } from '../../../../../convex/_generated/api'
 import type { Customer, Order } from '@/lib/types'
@@ -36,9 +36,8 @@ function initials(name: string) {
   return name.split(' ').slice(0, 2).map((n) => n[0]?.toUpperCase() ?? '').join('')
 }
 
-export default function CustomerProfilePage({ params }: { params: Promise<{ id: string }> }) {
-  const { id }    = use(params)
-  const customerId = id as any
+export default function CustomerProfilePage({ params }: { params: { id: string } }) {
+  const customerId = params.id as any
 
   const customerRaw = useQuery(api.customers.getById, { customerId })
   const ordersRaw   = useQuery(api.customers.getOrdersByCustomer, { customerId })

@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { use, useState } from 'react'
+import { useState } from 'react'
 import { useQuery, useMutation } from 'convex/react'
 import { api } from '../../../../../convex/_generated/api'
 import type { Order, OrderItem } from '@/lib/types'
@@ -77,9 +77,8 @@ function PrintTagsModal({
   )
 }
 
-export default function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params)
-  const orderId = id as any
+export default function OrderDetailPage({ params }: { params: { id: string } }) {
+  const orderId = params.id as any
 
   const order = useQuery(api.orders.getById, { orderId }) as Order | null | undefined
   const items = useQuery(api.items.listByOrder, { orderId }) as OrderItem[] | undefined
