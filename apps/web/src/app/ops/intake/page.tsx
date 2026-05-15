@@ -225,10 +225,13 @@ export default function IntakePage() {
     setError('')
     try {
       let customerId: string
-      if (selectedCust) {
+      if (selectedCust && selectedCust.id !== '__new__') {
+        // Existing customer — use their Convex ID directly
         customerId = selectedCust.id
       } else {
-        const res = await createCustomer({ name: searchQ.trim() })
+        // New customer — create them first, then use the returned ID
+        const name = selectedCust?.name ?? searchQ.trim()
+        const res = await createCustomer({ name, phone: selectedCust?.phone || undefined })
         customerId = res.id
       }
 
@@ -386,7 +389,7 @@ export default function IntakePage() {
                         ))}
                         {/* Create new option */}
                         <div
-                          onClick={() => { setSelectedCust({ id: '', name: searchQ.trim(), phone: '' }); setShowResults(false) }}
+                          onClick={() => { setSelectedCust({ id: '__new__', name: searchQ.trim(), phone: '' }); setShowResults(false) }}
                           className="flex items-center gap-2.5 px-3.5 py-2.5 cursor-pointer bg-indigo-500/6 hover:bg-indigo-500/10 transition-all"
                         >
                           <div className="w-8 h-8 rounded-full bg-indigo-500/15 text-indigo-400 flex items-center justify-center shrink-0">
