@@ -1,7 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { useQuery } from 'convex/react'
 import { api } from '../../../../convex/_generated/api'
 import type { Order } from '@/lib/types'
@@ -71,8 +72,21 @@ function formatDue(dueAt?: number) {
 }
 
 export default function OrdersPage() {
-  const [filter, setFilter] = useState<StatusFilter>('all')
+  const searchParams = useSearchParams()
+  const urlStatus    = searchParams.get('status') as StatusFilter | null
+
+  const [filter, setFilter] = useState<StatusFilter>(
+    urlStatus && STATUS_TABS.some((t) => t.value === urlStatus) ? urlStatus : 'all'
+  )
   const [search, setSearch] = useState('')
+
+  // Sync filter if URL param changes
+  useEffect(() => {
+    if (urlStatus && STATUS_TABS.some((t) => t.value === urlStatus)) {
+      setFilter(urlStatus)
+    }
+  }, [urlStatus])
+
   const ordersRaw = useQuery(api.orders.list, { limit: 200 })
   const orders    = ordersRaw as Order[] | undefined
 

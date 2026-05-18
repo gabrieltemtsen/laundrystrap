@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useMutation, useQuery } from 'convex/react'
 import { api } from '../../../../convex/_generated/api'
 import type { Price } from '@/lib/types'
@@ -120,7 +120,9 @@ function CheckItem({ done, required, title, sub, meta }: {
 
 /* ─── main page ──────────────────────────────────────────────────── */
 export default function IntakePage() {
-  const router = useRouter()
+  const router       = useRouter()
+  const searchParams = useSearchParams()
+  const prefillId    = searchParams.get('customer') // e.g. /ops/intake?customer=<id>
 
   /* mutations */
   const createCustomer = useMutation(api.customers.create)
@@ -137,6 +139,19 @@ export default function IntakePage() {
   const [showResults, setShowResults]     = useState(false)
   const [selectedCust, setSelectedCust]   = useState<SelectedCustomer | null>(null)
   const searchRef                         = useRef<HTMLDivElement>(null)
+
+  /* pre-fill customer from ?customer= URL param */
+  const prefillRaw = useQuery(
+    api.customers.getById,
+    prefillId && !selectedCust ? { customerId: prefillId as any } : 'skip',
+  )
+  useEffect(() => {
+    if (prefillRaw && !selectedCust) {
+      const c = prefillRaw as any
+      setSelectedCust({ id: c._id, name: c.name, phone: c.phone, email: c.email, address: c.address, notes: c.notes })
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prefillRaw])
   const customersRaw = useQuery(
     api.customers.list,
     searchQ.length >= 2 ? { search: searchQ, limit: 8 } : 'skip',

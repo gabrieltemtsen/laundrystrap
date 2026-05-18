@@ -1,9 +1,10 @@
 'use client'
 
 import Link from 'next/link'
+import { useState, useMemo } from 'react'
 import { useQuery } from 'convex/react'
 import { api } from '../../../convex/_generated/api'
-import type { Order } from '@/lib/types'
+import type { Order, Transaction } from '@/lib/types'
 import { AppShell } from '@/components/app-shell'
 import { Spinner } from '@/components/ui'
 import { Download, QrCode } from 'lucide-react'
@@ -121,13 +122,54 @@ function Station({ color, label, count, children }: { color: string; label: stri
   )
 }
 
+type FilterTab = 'All' | 'Overdue' | 'Today' | 'Corporate'
+
 /* ─── main page ─────────────────────────────── */
 export default function DashboardPage() {
-  const ordersRaw = useQuery(api.orders.list, { limit: 50 })
-  const orders    = ordersRaw as Order[] | undefined
-  const active    = orders?.filter((o) => o.status !== 'Completed') ?? []
+  const ordersRaw      = useQuery(api.orders.list, { limit: 100 })
+  const transactionsRaw = useQuery(api.transactions.list, { limit: 200 })
+  const orders         = ordersRaw as Order[] | undefined
+  const transactions   = transactionsRaw as Transaction[] | undefined
+  const active         = orders?.filter((o) => o.status !== 'Completed') ?? []
+
+  const [activeTab, setActiveTab] = useState<FilterTab>('All')
 
   const today = new Date()
+  const todayStart = useMemo(() => { const d = new Date(); d.setHours(0,0,0,0); return d.getTime() }, [])
+
+  // Revenue today from paid transactions
+  const revenueToday = useMemo(() =>
+    transactions?.filter((t) => t.status === 'Paid' && t.createdAt >= todayStart)
+      .reduce((s, t) => s + t.amountNgn, 0) ?? 0,
+  [transactions, todayStart])
+
+  // Unpaid = pending/overdue transactions total
+  const unpaidTotal = useMemo(() =>
+    transactions?.filter((t) => t.status === 'Pending' || t.status === 'Overdue')
+      .reduce((s, t) => s + t.amountNgn, 0) ?? 0,
+  [transactions])
+
+  const unpaidCount = useMemo(() =>
+    transactions?.filter((t) => t.status === 'Pending' || t.status === 'Overdue').length ?? 0,
+  [transactions])
+
+  // Overdue = orders with dueAt in the past
+  const overdueOrders = useMemo(() =>
+    active.filter((o) => o.dueAt && o.dueAt < Date.now()),
+  [active])
+
+  // Today's orders = created today
+  const todayOrders = useMemo(() =>
+    active.filter((o) => o.createdAt >= todayStart),
+  [active, todayStart])
+
+  // Filtered list based on tab
+  const filteredOrders = useMemo(() => {
+    if (activeTab === 'Overdue') return overdueOrders
+    if (activeTab === 'Today')   return todayOrders
+    return active
+  }, [activeTab, active, overdueOrders, todayOrders])
+
   const dateLabel = today.toLocaleDateString('en-NG', {
     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
   })
@@ -173,7 +215,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Ready for Pickup */}
-          <div className="relative overflow-hidden bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-4 flex flex-col gap-1.5">
+          <Link href="/ops/orders?status=Ready+for+Pickup" className="relative overflow-hidden bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-4 flex flex-col gap-1.5 hover:border-[var(--border-strong)] transition-all">
             <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(80% 50% at 100% 0%, #10B981 0%, transparent 60%)', opacity: 0.18 }} />
             <div className="absolute top-3.5 right-3.5 w-[30px] h-[30px] rounded-lg bg-white/4 flex items-center justify-center text-[var(--text-2)]">
               <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
@@ -182,8 +224,10 @@ export default function DashboardPage() {
             <div className="font-['Montserrat'] text-[28px] font-extrabold tracking-tight">
               {orders === undefined ? <Spinner className="h-6 w-6" /> : orders.filter(o => o.status === 'Ready for Pickup').length}
             </div>
-            <div className="text-[11.5px] text-emerald-400">3 picked up today</div>
-          </div>
+            <div className="text-[11.5px] text-emerald-400">
+              {orders ? `${orders.filter(o => o.status === 'Ready for Pickup').length} awaiting pickup` : ''}
+            </div>
+          </Link>
 
           {/* SLA Overdue */}
           <div className="relative overflow-hidden bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-4 flex flex-col gap-1.5">
@@ -197,26 +241,34 @@ export default function DashboardPage() {
           </div>
 
           {/* Revenue Today */}
-          <div className="relative overflow-hidden bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-4 flex flex-col gap-1.5">
+          <Link href="/ops/payments" className="relative overflow-hidden bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-4 flex flex-col gap-1.5 hover:border-[var(--border-strong)] transition-all">
             <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(80% 50% at 100% 0%, #22D3EE 0%, transparent 60%)', opacity: 0.18 }} />
             <div className="absolute top-3.5 right-3.5 w-[30px] h-[30px] rounded-lg bg-white/4 flex items-center justify-center text-[var(--text-2)]">
               <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
             </div>
             <div className="text-[10.5px] uppercase tracking-widest text-[var(--muted)] font-semibold">Revenue Today</div>
-            <div className="font-['Montserrat'] text-[28px] font-extrabold tracking-tight" style={{ color: 'var(--naira)' }}>₦184k</div>
-            <div className="text-[11.5px] text-emerald-400">▲ 22% vs avg</div>
-          </div>
+            <div className="font-['Montserrat'] text-[28px] font-extrabold tracking-tight" style={{ color: 'var(--naira)' }}>
+              {transactions === undefined ? <Spinner className="h-6 w-6" /> : revenueToday > 0 ? `₦${(revenueToday/1000).toFixed(0)}k` : '₦0'}
+            </div>
+            <div className="text-[11.5px] text-emerald-400">
+              {transactions === undefined ? '' : `${transactions.filter(t => t.status === 'Paid' && t.createdAt >= todayStart).length} payments today`}
+            </div>
+          </Link>
 
           {/* Unpaid Pickups */}
-          <div className="relative overflow-hidden bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-4 flex flex-col gap-1.5">
+          <Link href="/ops/payments" className="relative overflow-hidden bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-4 flex flex-col gap-1.5 hover:border-[var(--border-strong)] transition-all">
             <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(80% 50% at 100% 0%, #EF4444 0%, transparent 60%)', opacity: 0.18 }} />
             <div className="absolute top-3.5 right-3.5 w-[30px] h-[30px] rounded-lg bg-white/4 flex items-center justify-center text-[var(--text-2)]">
               <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
             </div>
             <div className="text-[10.5px] uppercase tracking-widest text-[var(--muted)] font-semibold">Unpaid Pickups</div>
-            <div className="font-['Montserrat'] text-[28px] font-extrabold tracking-tight" style={{ color: 'var(--naira)' }}>₦47k</div>
-            <div className="text-[11.5px] text-red-400">7 orders blocked</div>
-          </div>
+            <div className="font-['Montserrat'] text-[28px] font-extrabold tracking-tight" style={{ color: 'var(--naira)' }}>
+              {transactions === undefined ? <Spinner className="h-6 w-6" /> : unpaidTotal > 0 ? `₦${(unpaidTotal/1000).toFixed(0)}k` : '₦0'}
+            </div>
+            <div className="text-[11.5px] text-red-400">
+              {transactions === undefined ? '' : `${unpaidCount} order${unpaidCount !== 1 ? 's' : ''} pending`}
+            </div>
+          </Link>
         </div>
 
         {/* ── Workflow Stations kanban ── */}
@@ -287,16 +339,16 @@ export default function DashboardPage() {
             </div>
             {/* Filter chips */}
             <div className="flex gap-2 flex-wrap">
-              {[
-                { label: 'All', num: active.length, active: true },
-                { label: 'Overdue', num: 3, active: false },
-                { label: 'Today', num: 14, active: false },
-                { label: 'Corporate', num: 8, active: false },
-              ].map((chip) => (
+              {([
+                { label: 'All' as FilterTab,      num: active.length },
+                { label: 'Overdue' as FilterTab,  num: overdueOrders.length },
+                { label: 'Today' as FilterTab,    num: todayOrders.length },
+              ] as { label: FilterTab; num: number }[]).map((chip) => (
                 <button
                   key={chip.label}
+                  onClick={() => setActiveTab(chip.label)}
                   className={`px-3 py-1.5 rounded-full text-[12px] font-semibold border transition-all ${
-                    chip.active
+                    activeTab === chip.label
                       ? 'bg-[var(--primary)] text-white border-transparent'
                       : 'bg-[var(--surface)] border-[var(--border)] text-[var(--text-2)] hover:border-[var(--border-strong)]'
                   }`}
@@ -313,12 +365,11 @@ export default function DashboardPage() {
             <div className="flex items-center justify-center gap-2 py-12 text-sm text-[var(--muted)]">
               <Spinner className="h-5 w-5" /> Loading orders…
             </div>
-          ) : active.length === 0 ? (
-            /* Use static demo rows if no live data */
+          ) : filteredOrders.length === 0 ? (
             <DemoOrderRows />
           ) : (
             <div className="flex flex-col gap-2">
-              {active.slice(0, 10).map((o: Order, idx: number) => {
+              {filteredOrders.slice(0, 15).map((o: Order, idx: number) => {
                 const due = formatDue(o.dueAt)
                 const initials = getInitials(o.customerName)
                 const grad = AVATAR_GRADIENTS[idx % AVATAR_GRADIENTS.length]

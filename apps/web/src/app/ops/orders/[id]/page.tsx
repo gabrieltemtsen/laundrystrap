@@ -289,6 +289,11 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
 
   const currentStatusIdx = ORDER_STATUSES.indexOf(order.status as OrderStatus)
 
+  // Payment status derived from transactions
+  const paidTotal   = transactions?.filter((t) => t.status === 'Paid').reduce((s, t) => s + t.amountNgn, 0) ?? 0
+  const isFullyPaid = order.totalPrice != null && paidTotal >= order.totalPrice
+  const hasAnyPaid  = paidTotal > 0
+
   return (
     <AppShell>
       {showPrint && (
@@ -338,14 +343,21 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
                 <Printer className="h-4 w-4" /> Print Tags
               </Button>
             )}
-            <button
-              onClick={() => setShowPayment(true)}
-              className="inline-flex items-center gap-2 h-9 px-3.5 rounded-[10px] text-white text-[13px] font-semibold transition-all hover:brightness-110"
-              style={{ background: 'linear-gradient(135deg,#6366F1,#7C3AED)', boxShadow: '0 4px 14px -4px rgba(99,102,241,.5)' }}
-            >
-              <CreditCard className="h-4 w-4" />
-              Collect Payment
-            </button>
+            {isFullyPaid ? (
+              <span className="inline-flex items-center gap-2 h-9 px-3.5 rounded-[10px] text-emerald-400 text-[13px] font-bold border border-emerald-500/30 bg-emerald-500/10">
+                <CheckCircle2 className="h-4 w-4" />
+                Fully Paid
+              </span>
+            ) : (
+              <button
+                onClick={() => setShowPayment(true)}
+                className="inline-flex items-center gap-2 h-9 px-3.5 rounded-[10px] text-white text-[13px] font-semibold transition-all hover:brightness-110"
+                style={{ background: 'linear-gradient(135deg,#6366F1,#7C3AED)', boxShadow: '0 4px 14px -4px rgba(99,102,241,.5)' }}
+              >
+                <CreditCard className="h-4 w-4" />
+                {hasAnyPaid ? 'Collect Balance' : 'Collect Payment'}
+              </button>
+            )}
           </div>
         </div>
 
@@ -475,14 +487,20 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
                 <CardTitle>Payment History</CardTitle>
                 <CardDescription>All transactions recorded for this order.</CardDescription>
               </div>
-              <button
-                onClick={() => setShowPayment(true)}
-                className="inline-flex items-center gap-2 h-8 px-3.5 rounded-[10px] text-white text-[12px] font-semibold transition-all hover:brightness-110"
-                style={{ background: 'linear-gradient(135deg,#6366F1,#7C3AED)' }}
-              >
-                <CreditCard className="h-3.5 w-3.5" />
-                Collect Payment
-              </button>
+              {isFullyPaid ? (
+                <span className="inline-flex items-center gap-1.5 h-8 px-3 rounded-[10px] text-emerald-400 text-[12px] font-bold border border-emerald-500/30 bg-emerald-500/10">
+                  <CheckCircle2 className="h-3.5 w-3.5" /> Fully Paid
+                </span>
+              ) : (
+                <button
+                  onClick={() => setShowPayment(true)}
+                  className="inline-flex items-center gap-2 h-8 px-3.5 rounded-[10px] text-white text-[12px] font-semibold transition-all hover:brightness-110"
+                  style={{ background: 'linear-gradient(135deg,#6366F1,#7C3AED)' }}
+                >
+                  <CreditCard className="h-3.5 w-3.5" />
+                  {hasAnyPaid ? 'Collect Balance' : 'Collect Payment'}
+                </button>
+              )}
             </div>
           </CardHeader>
           <CardContent className="p-0">
