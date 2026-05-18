@@ -1,11 +1,11 @@
 'use client'
 
 import Link from 'next/link'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useQuery } from 'convex/react'
 import { api } from '../../../../convex/_generated/api'
-import type { Order } from '@/lib/types'
+import type { Order, Transaction } from '@/lib/types'
 import { AppShell } from '@/components/app-shell'
 import { Spinner } from '@/components/ui'
 import { Search, ClipboardList, Clock, Download } from 'lucide-react'
@@ -56,13 +56,17 @@ function StationPill({ status }: { status: string }) {
   )
 }
 
-function formatDue(dueAt?: number) {
+function formatDue(dueAt?: number, orderStatus?: string) {
   if (!dueAt) return { text: '—', cls: '' }
+  // Completed orders are never "overdue" — they're done
+  if (orderStatus === 'Completed') {
+    return { text: new Date(dueAt).toLocaleDateString('en-NG', { month: 'short', day: 'numeric' }), cls: 'text-[var(--muted)]' }
+  }
   const d        = new Date(dueAt)
   const now      = new Date()
   const tomorrow = new Date(now); tomorrow.setDate(now.getDate() + 1)
   const time     = d.toLocaleTimeString('en-NG', { hour: '2-digit', minute: '2-digit' })
-  if (d < now && d.toDateString() !== now.toDateString())
+  if (d < now)
     return { text: '⚠ Overdue', cls: 'text-red-400' }
   if (d.toDateString() === now.toDateString())
     return { text: `Today, ${time}`, cls: 'text-[var(--warning)]' }
@@ -87,8 +91,22 @@ export default function OrdersPage() {
     }
   }, [urlStatus])
 
-  const ordersRaw = useQuery(api.orders.list, { limit: 200 })
-  const orders    = ordersRaw as Order[] | undefined
+  const ordersRaw      = useQuery(api.orders.list, { limit: 200 })
+  const transactionsRaw = useQuery(api.transactions.list, { limit: 500 })
+  const orders         = ordersRaw as Order[] | undefined
+  const transactions   = transactionsRaw as Transaction[] | undefined
+
+  // Build a map: orderId → total amount paid (Paid status only)
+  const paidMap = useMemo(() => {
+    const m = new Map<string, number>()
+    if (!transactions) return m
+    for (const t of transactions) {
+      if (t.status === 'Paid') {
+        m.set(t.orderId, (m.get(t.orderId) ?? 0) + t.amountNgn)
+      }
+    }
+    return m
+  }, [transactions])
 
   const filtered = orders?.filter((o) => {
     const matchStatus = filter === 'all' || o.status === filter
@@ -197,9 +215,16 @@ export default function OrdersPage() {
             </div>
           ) : (
             filtered.map((o: Order, idx: number) => {
-              const due     = formatDue(o.dueAt)
+              const due      = formatDue(o.dueAt, o.status)
               const initials = getInitials(o.customerName)
-              const grad    = AVATAR_GRADIENTS[idx % AVATAR_GRADIENTS.length]
+              const grad     = AVATAR_GRADIENTS[idx % AVATAR_GRADIENTS.length]
+
+              // Real payment status from transactions
+              const paidAmt    = paidMap.get(o._id) ?? 0
+              const isFullPaid = o.totalPrice != null && paidAmt >= o.totalPrice
+              const isPartial  = paidAmt > 0 && !isFullPaid
+              const isUnpaid   = !isFullPaid && paidAmt === 0 && o.totalPrice != null
+
               return (
                 <Link
                   key={o._id}
@@ -220,18 +245,32 @@ export default function OrdersPage() {
                     </div>
                   </div>
                   <StationPill status={o.status} />
-                  {o.totalPrice ? (
+
+                  {/* Payment pill — based on actual transactions, not just whether a price exists */}
+                  {transactions === undefined ? (
+                    <span className="inline-flex items-center gap-1.5 text-[10.5px] font-bold px-2.5 py-1 rounded-full text-[var(--muted)] bg-[var(--surface-3)]">…</span>
+                  ) : isFullPaid ? (
                     <span className="inline-flex items-center gap-1.5 text-[10.5px] font-bold px-2.5 py-1 rounded-full text-emerald-400 bg-emerald-400/10">
                       <span className="w-1.5 h-1.5 rounded-full bg-current" />PAID
                     </span>
-                  ) : (
+                  ) : isPartial ? (
+                    <span className="inline-flex items-center gap-1.5 text-[10.5px] font-bold px-2.5 py-1 rounded-full text-amber-400 bg-amber-400/10">
+                      <span className="w-1.5 h-1.5 rounded-full bg-current" />PARTIAL
+                    </span>
+                  ) : isUnpaid ? (
                     <span className="inline-flex items-center gap-1.5 text-[10.5px] font-bold px-2.5 py-1 rounded-full text-red-400 bg-red-400/10">
                       <span className="w-1.5 h-1.5 rounded-full bg-current" />UNPAID
                     </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 text-[10.5px] font-bold px-2.5 py-1 rounded-full text-[var(--muted)] bg-[var(--surface-3)]">
+                      NO PRICE
+                    </span>
                   )}
+
                   <div className={`text-[11.5px] font-mono ${due.cls || 'text-[var(--text-2)]'}`}>{due.text}</div>
-                  <div className="font-mono text-[13px] font-black" style={{ color: o.totalPrice ? 'var(--naira)' : 'var(--muted)' }}>
+                  <div className="font-mono text-[13px] font-black" style={{ color: isFullPaid ? 'var(--naira)' : isPartial ? 'var(--warning)' : 'var(--muted)' }}>
                     {o.totalPrice ? `₦${o.totalPrice.toLocaleString()}` : '—'}
+                    {isPartial && <span className="text-[10px] ml-1 opacity-70">(₦{paidAmt.toLocaleString()} paid)</span>}
                   </div>
                   <button className="inline-flex items-center h-8 px-3 rounded-lg border border-[var(--border)] bg-transparent text-[var(--text)] text-[12px] font-semibold hover:border-[var(--border-strong)] transition-all">
                     View →
